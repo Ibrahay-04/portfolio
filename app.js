@@ -2,9 +2,9 @@
  * ====================================================================
  * APPLICATION CONTROLLER - IBRAHIM WAZNI PORTFOLIO & BLOG
  * ====================================================================
- * Modular Vanilla JavaScript: State management, Bilingual AR/EN toggle,
- * Dark/Light theme, interactive roadmap & blog filters, modal reader,
- * and toast notification engine.
+ * Senior Frontend & Responsive UI/UX Refactored Engine.
+ * Manages bilingual AR/EN state, dark/light theme, interactive filters,
+ * responsive modal reader, smooth mobile drawer, and toast notifications.
  */
 
 // Global SVG Icons dictionary for zero-dependency, ultra-fast rendering
@@ -119,7 +119,7 @@ class PortfolioApp {
     const langToggleBtn = document.getElementById('lang-toggle-btn');
     if (langToggleBtn) {
       langToggleBtn.innerHTML = `
-        <span class="flex items-center gap-1.5 font-semibold text-sm">
+        <span class="flex items-center gap-1.5 font-semibold text-xs sm:text-sm">
           ${getIcon('globe', 'w-4 h-4')}
           <span>${lang === 'ar' ? 'English' : 'العربية'}</span>
         </span>
@@ -152,7 +152,7 @@ class PortfolioApp {
   }
 
   // --------------------------------------------------------------------------
-  // Global Event Bindings
+  // Global Event Bindings & Responsive Handlers
   // --------------------------------------------------------------------------
   bindGlobalEvents() {
     // Theme toggle button
@@ -175,14 +175,16 @@ class PortfolioApp {
       });
     }
 
-    // Mobile menu toggle
+    // Mobile menu toggle with smooth transitions
     const mobileMenuBtn = document.getElementById('mobile-menu-btn');
     const mobileMenu = document.getElementById('mobile-menu');
     const mobileMenuClose = document.getElementById('mobile-menu-close');
 
     if (mobileMenuBtn && mobileMenu) {
       mobileMenuBtn.addEventListener('click', () => {
-        mobileMenu.classList.remove('hidden');
+        mobileMenu.classList.remove('opacity-0', 'pointer-events-none', '-translate-y-3');
+        mobileMenu.classList.add('opacity-100', 'pointer-events-auto', 'translate-y-0');
+        mobileMenu.setAttribute('aria-hidden', 'false');
         document.body.classList.add('overflow-hidden');
       });
     }
@@ -191,14 +193,11 @@ class PortfolioApp {
       mobileMenuClose.addEventListener('click', () => this.closeMobileMenu());
     }
 
-    // Close mobile menu when clicking nav links
-    document.querySelectorAll('.mobile-nav-link').forEach(link => {
-      link.addEventListener('click', () => this.closeMobileMenu());
-    });
-
-    // Share / Copy Profile Link buttons
-    document.querySelectorAll('[data-action="copy-link"]').forEach(btn => {
-      btn.addEventListener('click', () => this.copyProfileLink());
+    // Close mobile menu on resize past 768px (prevents scroll-lock bugs on orientation change)
+    window.addEventListener('resize', () => {
+      if (window.innerWidth >= 768) {
+        this.closeMobileMenu();
+      }
     });
 
     // Close modal on escape key
@@ -218,7 +217,9 @@ class PortfolioApp {
   closeMobileMenu() {
     const mobileMenu = document.getElementById('mobile-menu');
     if (mobileMenu) {
-      mobileMenu.classList.add('hidden');
+      mobileMenu.classList.remove('opacity-100', 'pointer-events-auto', 'translate-y-0');
+      mobileMenu.classList.add('opacity-0', 'pointer-events-none', '-translate-y-3');
+      mobileMenu.setAttribute('aria-hidden', 'true');
       document.body.classList.remove('overflow-hidden');
     }
   }
@@ -243,31 +244,43 @@ class PortfolioApp {
   renderNavbar() {
     const navData = this.data.ui.nav;
     const l = AppState.lang;
+    const p = this.data.profile;
 
     const brandName = document.getElementById('nav-brand-name');
     if (brandName) {
-      brandName.textContent = this.data.profile.shortName[l];
+      brandName.textContent = p.shortName[l];
+    }
+
+    // Dynamic Mobile Drawer Header Brand
+    const drawerBrandName = document.getElementById('mobile-drawer-brand-name');
+    if (drawerBrandName) {
+      drawerBrandName.textContent = p.shortName[l];
+    }
+
+    const drawerBrandRole = document.getElementById('mobile-drawer-brand-role');
+    if (drawerBrandRole) {
+      drawerBrandRole.textContent = p.roleBadge[l];
     }
 
     const linksContainer = document.getElementById('nav-links');
     if (linksContainer) {
       linksContainer.innerHTML = `
-        <a href="#about" class="hover:text-cyan-400 transition-colors font-medium text-sm text-slate-300 dark:text-slate-200">${navData.about[l]}</a>
-        <a href="#roadmap" class="hover:text-cyan-400 transition-colors font-medium text-sm text-slate-300 dark:text-slate-200">${navData.roadmap[l]}</a>
-        <a href="#stack" class="hover:text-cyan-400 transition-colors font-medium text-sm text-slate-300 dark:text-slate-200">${navData.stack[l]}</a>
-        <a href="#blog" class="hover:text-cyan-400 transition-colors font-medium text-sm text-slate-300 dark:text-slate-200">${navData.blog[l]}</a>
-        <a href="#contact" class="hover:text-cyan-400 transition-colors font-medium text-sm text-slate-300 dark:text-slate-200">${navData.contact[l]}</a>
+        <a href="#about" class="hover:text-cyan-400 transition-colors font-medium text-xs lg:text-sm text-slate-300 dark:text-slate-200">${navData.about[l]}</a>
+        <a href="#roadmap" class="hover:text-cyan-400 transition-colors font-medium text-xs lg:text-sm text-slate-300 dark:text-slate-200">${navData.roadmap[l]}</a>
+        <a href="#stack" class="hover:text-cyan-400 transition-colors font-medium text-xs lg:text-sm text-slate-300 dark:text-slate-200">${navData.stack[l]}</a>
+        <a href="#blog" class="hover:text-cyan-400 transition-colors font-medium text-xs lg:text-sm text-slate-300 dark:text-slate-200">${navData.blog[l]}</a>
+        <a href="#contact" class="hover:text-cyan-400 transition-colors font-medium text-xs lg:text-sm text-slate-300 dark:text-slate-200">${navData.contact[l]}</a>
       `;
     }
 
     const mobileLinksContainer = document.getElementById('mobile-nav-links');
     if (mobileLinksContainer) {
       mobileLinksContainer.innerHTML = `
-        <a href="#about" class="mobile-nav-link text-lg font-medium text-slate-200 hover:text-cyan-400 py-2 border-b border-slate-800">${navData.about[l]}</a>
-        <a href="#roadmap" class="mobile-nav-link text-lg font-medium text-slate-200 hover:text-cyan-400 py-2 border-b border-slate-800">${navData.roadmap[l]}</a>
-        <a href="#stack" class="mobile-nav-link text-lg font-medium text-slate-200 hover:text-cyan-400 py-2 border-b border-slate-800">${navData.stack[l]}</a>
-        <a href="#blog" class="mobile-nav-link text-lg font-medium text-slate-200 hover:text-cyan-400 py-2 border-b border-slate-800">${navData.blog[l]}</a>
-        <a href="#contact" class="mobile-nav-link text-lg font-medium text-slate-200 hover:text-cyan-400 py-2 border-b border-slate-800">${navData.contact[l]}</a>
+        <a href="#about" class="mobile-nav-link text-base sm:text-lg font-medium text-slate-200 hover:text-cyan-400 py-2.5 border-b border-slate-800">${navData.about[l]}</a>
+        <a href="#roadmap" class="mobile-nav-link text-base sm:text-lg font-medium text-slate-200 hover:text-cyan-400 py-2.5 border-b border-slate-800">${navData.roadmap[l]}</a>
+        <a href="#stack" class="mobile-nav-link text-base sm:text-lg font-medium text-slate-200 hover:text-cyan-400 py-2.5 border-b border-slate-800">${navData.stack[l]}</a>
+        <a href="#blog" class="mobile-nav-link text-base sm:text-lg font-medium text-slate-200 hover:text-cyan-400 py-2.5 border-b border-slate-800">${navData.blog[l]}</a>
+        <a href="#contact" class="mobile-nav-link text-base sm:text-lg font-medium text-slate-200 hover:text-cyan-400 py-2.5 border-b border-slate-800">${navData.contact[l]}</a>
       `;
       // Re-bind click event to newly created links
       mobileLinksContainer.querySelectorAll('.mobile-nav-link').forEach(link => {
@@ -312,23 +325,29 @@ class PortfolioApp {
       heroBio.textContent = p.bio[l];
     }
 
-    // CTAs
+    // CTAs (Responsive 1 primary full-width + 2 secondary side-by-side on mobile, row on desktop)
     const heroCtaContainer = document.getElementById('hero-cta-container');
     if (heroCtaContainer) {
       const isRtl = l === 'ar';
       heroCtaContainer.innerHTML = `
-        <a href="#roadmap" class="btn-glow-cyan inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl font-bold text-white bg-gradient-to-r from-cyan-500 to-blue-600 shadow-lg shadow-cyan-500/25 hover:from-cyan-400 hover:to-blue-500 transition-all">
-          <span>${ui.exploreBtn[l]}</span>
-          ${isRtl ? getIcon('arrow-left', 'w-4 h-4') : getIcon('arrow-right', 'w-4 h-4')}
-        </a>
-        <a href="#blog" class="inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl font-semibold text-slate-200 bg-slate-800/80 hover:bg-slate-700/80 border border-slate-700 hover:border-cyan-500/50 transition-all">
-          ${getIcon('book-open', 'w-4 h-4 text-cyan-400')}
-          <span>${ui.readBlogBtn[l]}</span>
-        </a>
-        <button id="hero-copy-btn" class="inline-flex items-center justify-center gap-2 px-5 py-3.5 rounded-xl font-medium text-slate-300 bg-slate-900/60 hover:bg-slate-800 border border-slate-800 hover:border-slate-600 transition-all">
-          ${getIcon('share-2', 'w-4 h-4 text-emerald-400')}
-          <span>${ui.shareBtn[l]}</span>
-        </button>
+        <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2.5 sm:gap-3 w-full sm:w-auto">
+          <!-- Primary CTA: full width on mobile -->
+          <a href="#roadmap" class="btn-glow-cyan w-full sm:w-auto min-h-[44px] inline-flex items-center justify-center gap-2 px-6 py-3.5 rounded-xl font-bold text-white bg-gradient-to-r from-cyan-500 to-blue-600 shadow-lg shadow-cyan-500/25 hover:from-cyan-400 hover:to-blue-500 transition-all text-sm sm:text-base">
+            <span>${ui.exploreBtn[l]}</span>
+            ${isRtl ? getIcon('arrow-left', 'w-4 h-4') : getIcon('arrow-right', 'w-4 h-4')}
+          </a>
+          <!-- Secondary CTAs: 2 columns on mobile, inline on desktop -->
+          <div class="grid grid-cols-2 sm:flex sm:items-center gap-2 sm:gap-3 w-full sm:w-auto">
+            <a href="#blog" class="min-h-[44px] inline-flex items-center justify-center gap-1.5 sm:gap-2 px-3 sm:px-5 py-3 rounded-xl font-semibold text-xs sm:text-sm text-slate-200 bg-slate-800/80 hover:bg-slate-700/80 border border-slate-700 hover:border-cyan-500/50 transition-all text-center">
+              ${getIcon('book-open', 'w-4 h-4 text-cyan-400 shrink-0')}
+              <span class="truncate">${ui.readBlogBtn[l]}</span>
+            </a>
+            <button id="hero-copy-btn" class="min-h-[44px] inline-flex items-center justify-center gap-1.5 sm:gap-2 px-3 sm:px-5 py-3 rounded-xl font-medium text-xs sm:text-sm text-slate-300 bg-slate-900/80 hover:bg-slate-800 border border-slate-800 hover:border-slate-600 transition-all text-center">
+              ${getIcon('share-2', 'w-4 h-4 text-emerald-400 shrink-0')}
+              <span class="truncate">${ui.shareBtn[l]}</span>
+            </button>
+          </div>
+        </div>
       `;
 
       const heroCopyBtn = document.getElementById('hero-copy-btn');
@@ -341,27 +360,29 @@ class PortfolioApp {
     const heroFloatBadge = document.getElementById('hero-float-badge');
     if (heroFloatBadge) {
       heroFloatBadge.innerHTML = `
-        <div class="flex items-center gap-2 px-4 py-2 rounded-xl bg-slate-900/90 border border-cyan-500/40 backdrop-blur-md shadow-xl text-cyan-300 text-xs sm:text-sm font-bold">
-          <span class="w-2 h-2 rounded-full bg-cyan-400 animate-pulse"></span>
+        <div class="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-xl bg-slate-900/90 border border-cyan-500/40 backdrop-blur-md shadow-xl text-cyan-300 text-[11px] sm:text-sm font-bold">
+          <span class="w-1.5 sm:w-2 h-1.5 sm:h-2 rounded-full bg-cyan-400 animate-pulse"></span>
           <span>${p.roleBadge[l]}</span>
         </div>
       `;
     }
 
-    // Stats Grid
+    // Stats Grid (Equal height cards, clean 2x2 on mobile, 4-col on desktop)
     const statsContainer = document.getElementById('hero-stats-grid');
     if (statsContainer) {
       statsContainer.innerHTML = p.stats.map(s => `
-        <div class="glass-card p-3 sm:p-5 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4 border border-slate-800/80 hover:border-cyan-500/40 min-w-0">
-          <div class="p-2 sm:p-3 rounded-xl bg-cyan-500/10 text-cyan-400 shrink-0">
-            ${getIcon(s.icon, 'w-5 h-5 sm:w-6 sm:h-6')}
-          </div>
-          <div class="min-w-0 w-full">
-            <div class="flex items-baseline gap-1">
-              <span class="text-lg sm:text-2xl font-black text-white dark:text-white font-mono tracking-tight">${s.number}</span>
-              <span class="text-[11px] sm:text-xs font-semibold text-cyan-400">${s.unit[l]}</span>
+        <div class="glass-card p-3.5 sm:p-5 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center gap-2.5 sm:gap-4 border border-slate-800/80 hover:border-cyan-500/40 min-w-0 h-full justify-between">
+          <div class="flex items-center gap-3 sm:gap-4 w-full">
+            <div class="p-2 sm:p-3 rounded-xl bg-cyan-500/10 text-cyan-400 shrink-0">
+              ${getIcon(s.icon, 'w-5 h-5 sm:w-6 sm:h-6')}
             </div>
-            <p class="text-[11px] sm:text-sm text-slate-400 mt-0.5 leading-tight">${s.label[l]}</p>
+            <div class="min-w-0 flex-1">
+              <div class="flex items-baseline gap-1">
+                <span class="text-lg sm:text-2xl font-black text-white font-mono tracking-tight">${s.number}</span>
+                <span class="text-[11px] sm:text-xs font-semibold text-cyan-400">${s.unit[l]}</span>
+              </div>
+              <p class="text-[11px] sm:text-sm text-slate-400 mt-0.5 leading-snug line-clamp-2">${s.label[l]}</p>
+            </div>
           </div>
         </div>
       `).join('');
@@ -393,7 +414,7 @@ class PortfolioApp {
     const paragraphsContainer = document.getElementById('about-paragraphs');
     if (paragraphsContainer) {
       paragraphsContainer.innerHTML = am.paragraphs.map(p => `
-        <p class="text-base sm:text-lg text-slate-300 dark:text-slate-300 leading-relaxed">${p[l]}</p>
+        <p class="text-sm sm:text-base lg:text-lg text-slate-300 leading-relaxed">${p[l]}</p>
       `).join('');
     }
 
@@ -401,17 +422,17 @@ class PortfolioApp {
     const touchTypingContainer = document.getElementById('touch-typing-card');
     if (touchTypingContainer) {
       touchTypingContainer.innerHTML = `
-        <div class="glass-card p-6 rounded-2xl border-l-4 border-l-cyan-400 relative overflow-hidden">
-          <div class="flex items-start gap-4">
-            <div class="p-3.5 rounded-xl bg-cyan-500/15 text-cyan-400 shrink-0">
-              ${getIcon('keyboard', 'w-7 h-7')}
+        <div class="glass-card p-5 sm:p-6 rounded-2xl border-l-4 border-l-cyan-400 relative overflow-hidden">
+          <div class="flex items-start gap-3.5 sm:gap-4">
+            <div class="p-2.5 sm:p-3.5 rounded-xl bg-cyan-500/15 text-cyan-400 shrink-0">
+              ${getIcon('keyboard', 'w-6 h-6 sm:w-7 sm:h-7')}
             </div>
-            <div>
+            <div class="min-w-0 flex-1">
               <div class="flex flex-wrap items-center gap-2 mb-1">
-                <h4 class="text-lg font-bold text-white">${am.touchTyping.title[l]}</h4>
+                <h4 class="text-base sm:text-lg font-bold text-white">${am.touchTyping.title[l]}</h4>
                 <span class="badge-code px-2 py-0.5 text-xs font-mono font-bold bg-cyan-500/20 text-cyan-300 rounded border border-cyan-500/30">60+ WPM</span>
               </div>
-              <p class="text-sm text-slate-300 leading-relaxed">${am.touchTyping.desc[l]}</p>
+              <p class="text-xs sm:text-sm text-slate-300 leading-relaxed">${am.touchTyping.desc[l]}</p>
             </div>
           </div>
         </div>
@@ -441,7 +462,7 @@ class PortfolioApp {
       `;
     }
 
-    // Books Shelf
+    // Books Shelf (Equal heights)
     const booksTitle = document.getElementById('books-shelf-title');
     if (booksTitle) {
       booksTitle.textContent = this.data.ui.sections.booksTitle[l];
@@ -450,7 +471,7 @@ class PortfolioApp {
     const booksContainer = document.getElementById('books-shelf-grid');
     if (booksContainer) {
       booksContainer.innerHTML = am.booksShelf.map(b => `
-        <div class="book-card glass-card p-5 sm:p-6 rounded-2xl flex flex-col justify-between border border-slate-800 hover:border-emerald-500/50">
+        <div class="book-card glass-card p-5 sm:p-6 rounded-2xl flex flex-col justify-between h-full border border-slate-800 hover:border-emerald-500/50">
           <div>
             <div class="flex items-center justify-between gap-2 mb-3">
               <span class="text-xs font-semibold px-2.5 py-1 rounded-full bg-emerald-500/15 text-emerald-300 border border-emerald-500/30">
@@ -460,9 +481,9 @@ class PortfolioApp {
                 ${getIcon(b.icon, 'w-5 h-5')}
               </div>
             </div>
-            <h4 class="text-lg font-bold text-white mb-1">${b.title[l]}</h4>
+            <h4 class="text-base sm:text-lg font-bold text-white mb-1 leading-snug">${b.title[l]}</h4>
             <p class="text-xs text-slate-400 mb-3">${b.author}</p>
-            <p class="text-sm text-slate-300 leading-relaxed mb-4">${b.desc[l]}</p>
+            <p class="text-xs sm:text-sm text-slate-300 leading-relaxed mb-4">${b.desc[l]}</p>
           </div>
           <div class="pt-3 border-t border-slate-800/80 text-xs font-medium text-emerald-400/90 italic">
             ${b.impact[l]}
@@ -489,16 +510,16 @@ class PortfolioApp {
       roadmapSubtitle.textContent = this.data.ui.sections.roadmapSubtitle[l];
     }
 
-    // Filter Buttons
+    // Filter Buttons (with shrink-0 for smooth mobile horizontal scroll)
     const filterContainer = document.getElementById('roadmap-filters');
     if (filterContainer) {
       filterContainer.innerHTML = rm.categories.map(cat => {
         const isActive = cat.id === AppState.activeRoadmapFilter;
         return `
-          <button data-roadmap-filter="${cat.id}" class="px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all ${
+          <button data-roadmap-filter="${cat.id}" class="shrink-0 whitespace-nowrap min-h-[40px] px-3.5 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all ${
             isActive
               ? 'bg-gradient-to-r from-cyan-500 to-blue-600 text-white shadow-lg shadow-cyan-500/20'
-              : 'bg-slate-800/70 text-slate-300 hover:bg-slate-800 hover:text-white border border-slate-700/60'
+              : 'bg-slate-800/80 text-slate-300 hover:bg-slate-800 hover:text-white border border-slate-700/60'
           }">
             ${cat.label[l]}
           </button>
@@ -514,7 +535,7 @@ class PortfolioApp {
       });
     }
 
-    // Courses List
+    // Courses List (Equal height cards)
     const coursesContainer = document.getElementById('courses-timeline-grid');
     if (coursesContainer) {
       const filteredCourses = rm.items.filter(item => {
@@ -530,9 +551,9 @@ class PortfolioApp {
         const barColor = isCurrent ? 'from-cyan-500 to-emerald-500' : 'from-purple-500 to-indigo-500';
 
         return `
-          <div class="glass-card p-6 sm:p-7 rounded-2xl border border-slate-800/80 hover:border-cyan-500/40 relative overflow-hidden flex flex-col justify-between">
+          <div class="glass-card p-5 sm:p-7 rounded-2xl border border-slate-800/80 hover:border-cyan-500/40 relative overflow-hidden flex flex-col justify-between h-full">
             <div>
-              <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+              <div class="flex flex-wrap items-center justify-between gap-2.5 mb-4">
                 <span class="text-xs font-bold px-3 py-1 rounded-full border ${badgeBg} flex items-center gap-1.5">
                   <span class="w-1.5 h-1.5 rounded-full ${isCurrent ? 'bg-emerald-400 animate-pulse' : 'bg-purple-400'}"></span>
                   ${c.statusBadge[l]}
@@ -540,12 +561,12 @@ class PortfolioApp {
                 <span class="text-xs text-slate-400 font-medium">${c.institution[l]}</span>
               </div>
 
-              <div class="flex items-start gap-3.5 mb-4">
-                <div class="p-3 rounded-xl bg-slate-800/90 text-cyan-400 border border-slate-700/70 shrink-0">
-                  ${getIcon(c.icon, 'w-6 h-6')}
+              <div class="flex items-start gap-3 sm:gap-3.5 mb-4">
+                <div class="p-2.5 sm:p-3 rounded-xl bg-slate-800/90 text-cyan-400 border border-slate-700/70 shrink-0">
+                  ${getIcon(c.icon, 'w-5 h-5 sm:w-6 sm:h-6')}
                 </div>
                 <div>
-                  <h4 class="text-lg sm:text-xl font-bold text-white leading-snug">${c.title[l]}</h4>
+                  <h4 class="text-base sm:text-lg lg:text-xl font-bold text-white leading-snug">${c.title[l]}</h4>
                 </div>
               </div>
 
@@ -555,7 +576,7 @@ class PortfolioApp {
                 <ul class="space-y-1.5">
                   ${c.topics.map(t => `
                     <li class="flex items-start gap-2 text-xs sm:text-sm text-slate-300">
-                      <span class="text-cyan-400 mt-1 shrink-0">${getIcon('check-circle-2', 'w-3.5 h-3.5')}</span>
+                      <span class="text-cyan-400 mt-0.5 shrink-0">${getIcon('check-circle-2', 'w-3.5 h-3.5')}</span>
                       <span>${t[l]}</span>
                     </li>
                   `).join('')}
@@ -563,7 +584,7 @@ class PortfolioApp {
               </div>
             </div>
 
-            <!-- Bottom Tools & Progress -->
+            <!-- Bottom Tools & Progress (Aligned across all cards) -->
             <div class="pt-4 border-t border-slate-800/80">
               <div class="flex flex-wrap items-center gap-1.5 mb-3.5">
                 ${c.tools.map(tool => `
@@ -609,28 +630,28 @@ class PortfolioApp {
     const stackContainer = document.getElementById('stack-groups-container');
     if (stackContainer) {
       stackContainer.innerHTML = ts.categories.map(cat => `
-        <div class="mb-10 last:mb-0">
-          <div class="mb-5">
-            <h4 class="text-xl sm:text-2xl font-bold text-white flex items-center gap-2.5">
-              <span class="w-2.5 h-6 rounded-full bg-cyan-400"></span>
+        <div class="mb-10 sm:mb-12 last:mb-0">
+          <div class="mb-5 sm:mb-6">
+            <h4 class="text-lg sm:text-xl lg:text-2xl font-bold text-white flex items-center gap-2.5">
+              <span class="w-2.5 h-5 sm:h-6 rounded-full bg-cyan-400"></span>
               <span>${cat.title[l]}</span>
             </h4>
-            <p class="text-sm text-slate-400 mt-1">${cat.desc[l]}</p>
+            <p class="text-xs sm:text-sm text-slate-400 mt-1">${cat.desc[l]}</p>
           </div>
 
-          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5 sm:gap-5">
             ${cat.tools.map(tool => `
-              <div class="glass-card p-5 rounded-2xl border border-slate-800/80 hover:border-cyan-500/50 flex flex-col justify-between group">
+              <div class="glass-card p-4 sm:p-5 rounded-2xl border border-slate-800/80 hover:border-cyan-500/50 flex flex-col justify-between h-full group">
                 <div>
                   <div class="flex items-center justify-between mb-3">
-                    <div class="p-3 rounded-xl bg-cyan-500/10 text-cyan-400 group-hover:bg-cyan-500 group-hover:text-slate-950 transition-colors">
-                      ${getIcon(tool.icon, 'w-6 h-6')}
+                    <div class="p-2.5 sm:p-3 rounded-xl bg-cyan-500/10 text-cyan-400 group-hover:bg-cyan-500 group-hover:text-slate-950 transition-colors shrink-0">
+                      ${getIcon(tool.icon, 'w-5 h-5 sm:w-6 sm:h-6')}
                     </div>
                     <span class="badge-code text-xs px-2 py-0.5 rounded font-mono font-bold bg-slate-900/90 text-cyan-300 border border-slate-800">
                       ${tool.badge}
                     </span>
                   </div>
-                  <h5 class="text-base font-bold text-white mb-0.5">${tool.name}</h5>
+                  <h5 class="text-sm sm:text-base font-bold text-white mb-0.5">${tool.name}</h5>
                   <p class="text-xs font-semibold text-cyan-400/90 mb-2">${tool.category[l]}</p>
                   <p class="text-xs sm:text-sm text-slate-300 leading-relaxed">${tool.desc[l]}</p>
                 </div>
@@ -659,16 +680,16 @@ class PortfolioApp {
       blogSubtitle.textContent = this.data.ui.sections.blogSubtitle[l];
     }
 
-    // Category Filter Buttons
+    // Category Filter Buttons (with shrink-0 for horizontal scrolling)
     const blogFilters = document.getElementById('blog-filters');
     if (blogFilters) {
       blogFilters.innerHTML = b.categories.map(cat => {
         const isActive = cat.id === AppState.activeBlogFilter;
         return `
-          <button data-blog-filter="${cat.id}" class="px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all ${
+          <button data-blog-filter="${cat.id}" class="shrink-0 whitespace-nowrap min-h-[40px] px-3.5 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all ${
             isActive
               ? 'bg-gradient-to-r from-cyan-500 to-blue-600 text-white shadow-lg shadow-cyan-500/20'
-              : 'bg-slate-800/70 text-slate-300 hover:bg-slate-800 hover:text-white border border-slate-700/60'
+              : 'bg-slate-800/80 text-slate-300 hover:bg-slate-800 hover:text-white border border-slate-700/60'
           }">
             ${cat.label[l]}
           </button>
@@ -684,7 +705,7 @@ class PortfolioApp {
       });
     }
 
-    // Articles Grid
+    // Articles Grid (Equal heights, clean alignment)
     const postsContainer = document.getElementById('blog-posts-grid');
     if (postsContainer) {
       const filteredPosts = b.posts.filter(p => {
@@ -695,13 +716,13 @@ class PortfolioApp {
       const common = this.data.ui.common;
 
       postsContainer.innerHTML = filteredPosts.map(post => `
-        <article class="glass-card p-6 sm:p-7 rounded-2xl border border-slate-800/80 hover:border-cyan-500/50 flex flex-col justify-between group cursor-pointer" data-post-id="${post.id}">
+        <article class="glass-card p-5 sm:p-7 rounded-2xl border border-slate-800/80 hover:border-cyan-500/50 flex flex-col justify-between h-full group cursor-pointer" data-post-id="${post.id}">
           <div>
-            <div class="flex items-center justify-between text-xs text-slate-400 mb-3">
+            <div class="flex items-center justify-between text-xs text-slate-400 mb-3 flex-wrap gap-2">
               <span class="px-2.5 py-1 rounded-full bg-cyan-500/15 text-cyan-300 font-bold border border-cyan-500/30">
                 ${post.categoryLabel[l]}
               </span>
-              <div class="flex items-center gap-3">
+              <div class="flex items-center gap-2.5">
                 <span class="font-mono">${post.date}</span>
                 <span>•</span>
                 <span class="flex items-center gap-1 text-slate-400">
@@ -711,16 +732,16 @@ class PortfolioApp {
               </div>
             </div>
 
-            <h4 class="text-xl font-bold text-white group-hover:text-cyan-400 transition-colors mb-3 leading-snug">
+            <h4 class="text-base sm:text-lg lg:text-xl font-bold text-white group-hover:text-cyan-400 transition-colors mb-2.5 leading-snug">
               ${post.title[l]}
             </h4>
 
-            <p class="text-sm text-slate-300 leading-relaxed mb-6">
+            <p class="text-xs sm:text-sm text-slate-300 leading-relaxed mb-5 line-clamp-3">
               ${post.excerpt[l]}
             </p>
           </div>
 
-          <div class="pt-4 border-t border-slate-800/80 flex items-center justify-between text-cyan-400 font-semibold text-sm">
+          <div class="pt-3.5 border-t border-slate-800/80 flex items-center justify-between text-cyan-400 font-semibold text-xs sm:text-sm">
             <span>${common.readArticle[l]}</span>
             <span class="transform group-hover:translate-x-1 rtl:group-hover:-translate-x-1 transition-transform">
               ${AppState.lang === 'ar' ? getIcon('arrow-left', 'w-4 h-4') : getIcon('arrow-right', 'w-4 h-4')}
@@ -731,7 +752,7 @@ class PortfolioApp {
 
       // Add click listener to open modal reader
       postsContainer.querySelectorAll('[data-post-id]').forEach(card => {
-        card.addEventListener('click', (e) => {
+        card.addEventListener('click', () => {
           const postId = card.getAttribute('data-post-id');
           this.openBlogModal(postId);
         });
@@ -740,7 +761,7 @@ class PortfolioApp {
   }
 
   // --------------------------------------------------------------------------
-  // Blog Reader Modal
+  // Mobile-Optimized Blog Reader Modal (Sticky Header & Responsive Code)
   // --------------------------------------------------------------------------
   openBlogModal(postId) {
     const post = this.data.blog.posts.find(p => p.id === postId);
@@ -755,10 +776,10 @@ class PortfolioApp {
     if (!modal || !modalContent) return;
 
     modalContent.innerHTML = `
-      <!-- Modal Header -->
-      <div class="flex items-center justify-between border-b border-slate-800/80 pb-4 mb-6">
-        <div class="flex items-center gap-3">
-          <span class="px-3 py-1 rounded-full text-xs font-bold bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">
+      <!-- Sticky Modal Header (Always accessible during reading) -->
+      <div class="sticky top-0 z-20 backdrop-blur-md bg-slate-900/95 dark:bg-slate-900/95 border-b border-slate-800/80 px-4 sm:px-8 py-3.5 flex items-center justify-between shrink-0">
+        <div class="flex items-center gap-2 sm:gap-3 flex-wrap">
+          <span class="px-2.5 py-0.5 sm:py-1 rounded-full text-[11px] sm:text-xs font-bold bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">
             ${post.categoryLabel[l]}
           </span>
           <span class="text-xs text-slate-400 font-mono">${post.date}</span>
@@ -767,37 +788,40 @@ class PortfolioApp {
             ${post.readTime[l]}
           </span>
         </div>
-        <button id="modal-close-btn" class="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition-colors" title="${common.close[l]}">
-          ${getIcon('x', 'w-6 h-6')}
+        <button id="modal-close-btn" class="min-w-[40px] min-h-[40px] p-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition-colors flex items-center justify-center shrink-0" title="${common.close[l]}">
+          ${getIcon('x', 'w-5 h-5 sm:w-6 sm:h-6')}
         </button>
       </div>
 
-      <!-- Article Title -->
-      <h2 class="text-2xl sm:text-3xl font-black text-white leading-tight mb-4">
-        ${post.title[l]}
-      </h2>
+      <!-- Scrollable Article Content -->
+      <div class="overflow-y-auto px-4 sm:px-8 py-5 sm:py-6 flex-1 overscroll-contain">
+        <!-- Article Title -->
+        <h2 class="text-xl sm:text-2xl lg:text-3xl font-black text-white leading-tight mb-4">
+          ${post.title[l]}
+        </h2>
 
-      <!-- Author Card inside Modal -->
-      <div class="flex items-center gap-3 p-3 rounded-xl bg-slate-900/60 border border-slate-800 mb-6">
-        <img src="${this.data.profile.avatar}" alt="Ibrahim Wazni" class="w-11 h-11 rounded-full object-cover border border-cyan-500/40" onerror="this.src='https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80'">
-        <div>
-          <h5 class="text-sm font-bold text-white">${this.data.profile.name[l]}</h5>
-          <p class="text-xs text-slate-400">${this.data.profile.university[l]}</p>
+        <!-- Author Card inside Modal -->
+        <div class="flex items-center gap-3 p-3 rounded-xl bg-slate-900/60 border border-slate-800 mb-6">
+          <img src="${this.data.profile.avatar}" alt="Ibrahim Wazni" class="w-10 h-10 sm:w-11 sm:h-11 rounded-full object-cover border border-cyan-500/40 shrink-0" onerror="this.src='https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80'">
+          <div class="min-w-0">
+            <h5 class="text-xs sm:text-sm font-bold text-white truncate">${this.data.profile.name[l]}</h5>
+            <p class="text-[11px] sm:text-xs text-slate-400 truncate">${this.data.profile.university[l]}</p>
+          </div>
+        </div>
+
+        <!-- Formatted Article Body -->
+        <div class="article-body text-slate-200">
+          ${post.content[l]}
         </div>
       </div>
 
-      <!-- Article Body -->
-      <div class="article-body text-slate-200">
-        ${post.content[l]}
-      </div>
-
-      <!-- Modal Footer -->
-      <div class="mt-8 pt-6 border-t border-slate-800/80 flex flex-wrap items-center justify-between gap-3">
-        <button id="modal-share-btn" class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs sm:text-sm font-semibold bg-cyan-500/15 text-cyan-300 hover:bg-cyan-500/25 border border-cyan-500/30 transition-all">
+      <!-- Docked Modal Footer -->
+      <div class="px-4 sm:px-8 py-3.5 border-t border-slate-800/80 backdrop-blur-md bg-slate-900/95 flex items-center justify-between gap-3 shrink-0">
+        <button id="modal-share-btn" class="min-h-[40px] inline-flex items-center gap-2 px-3.5 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold bg-cyan-500/15 text-cyan-300 hover:bg-cyan-500/25 border border-cyan-500/30 transition-all">
           ${getIcon('share-2', 'w-4 h-4')}
           <span>${common.shareArticle[l]}</span>
         </button>
-        <button id="modal-bottom-close-btn" class="px-5 py-2.5 rounded-xl text-xs sm:text-sm font-semibold bg-slate-800 hover:bg-slate-700 text-slate-200 transition-all">
+        <button id="modal-bottom-close-btn" class="min-h-[40px] px-4 sm:px-5 py-2 rounded-xl text-xs sm:text-sm font-semibold bg-slate-800 hover:bg-slate-700 text-slate-200 transition-all">
           ${common.close[l]}
         </button>
       </div>
@@ -843,12 +867,11 @@ class PortfolioApp {
   }
 
   // --------------------------------------------------------------------------
-  // Contact & Social Section
+  // Contact & Social Section (Overflow-Safe Inputs & Channels)
   // --------------------------------------------------------------------------
   renderContact() {
     const c = this.data.contact;
     const l = AppState.lang;
-    const common = this.data.ui.common;
 
     const contactTitle = document.getElementById('contact-section-title');
     if (contactTitle) {
@@ -865,21 +888,21 @@ class PortfolioApp {
       channelsTitle.textContent = c.channelsTitle[l];
     }
 
-    // Channels Grid
+    // Channels Grid with break-all for long emails on small screens
     const channelsContainer = document.getElementById('contact-channels-grid');
     if (channelsContainer) {
       channelsContainer.innerHTML = c.channels.map(chan => `
-        <a href="${chan.href}" target="_blank" rel="noopener noreferrer" class="glass-card p-4 rounded-xl border border-slate-800/80 hover:border-cyan-500/50 flex items-center justify-between group transition-all">
-          <div class="flex items-center gap-3">
-            <div class="p-2.5 rounded-lg bg-cyan-500/10 text-cyan-400 group-hover:bg-cyan-500 group-hover:text-slate-950 transition-colors">
+        <a href="${chan.href}" target="_blank" rel="noopener noreferrer" class="glass-card p-3.5 sm:p-4 rounded-xl border border-slate-800/80 hover:border-cyan-500/50 flex items-center justify-between group transition-all min-w-0">
+          <div class="flex items-center gap-3 min-w-0 flex-1">
+            <div class="p-2 sm:p-2.5 rounded-lg bg-cyan-500/10 text-cyan-400 group-hover:bg-cyan-500 group-hover:text-slate-950 transition-colors shrink-0">
               ${getIcon(chan.icon, 'w-5 h-5')}
             </div>
-            <div>
-              <div class="text-xs text-slate-400">${chan.name}</div>
-              <div class="text-sm font-bold text-white group-hover:text-cyan-400 transition-colors font-mono">${chan.value}</div>
+            <div class="min-w-0 flex-1">
+              <div class="text-[11px] sm:text-xs text-slate-400">${chan.name}</div>
+              <div class="text-xs sm:text-sm font-bold text-white group-hover:text-cyan-400 transition-colors font-mono break-all sm:break-normal truncate">${chan.value}</div>
             </div>
           </div>
-          <span class="text-slate-500 group-hover:text-cyan-400 transition-colors">
+          <span class="text-slate-500 group-hover:text-cyan-400 transition-colors shrink-0 ms-2">
             ${AppState.lang === 'ar' ? getIcon('arrow-left', 'w-4 h-4') : getIcon('arrow-right', 'w-4 h-4')}
           </span>
         </a>
@@ -954,7 +977,7 @@ class PortfolioApp {
   }
 
   // --------------------------------------------------------------------------
-  // Toast Engine
+  // Responsive Toast Engine
   // --------------------------------------------------------------------------
   showToast(message, duration = 3600) {
     const container = document.getElementById('toast-container');
@@ -978,7 +1001,7 @@ class PortfolioApp {
       toast.classList.remove('show');
       setTimeout(() => {
         toast.remove();
-      }, 400);
+      }, 350);
     }, duration);
   }
 

@@ -73,22 +73,22 @@
   <!-- ========================================================================
        Sticky Glassmorphic Navigation Bar
        ======================================================================== -->
-  <header class="sticky top-0 z-50 backdrop-blur-xl bg-slate-900/80 dark:bg-slate-900/80 border-b border-slate-800/80 transition-colors">
+  <header class="sticky top-0 z-50 backdrop-blur-xl bg-slate-900/85 dark:bg-slate-900/85 border-b border-slate-800/80 transition-colors">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="flex items-center justify-between h-16 sm:h-20">
+      <div class="flex items-center justify-between h-16 md:h-20">
         
         <!-- Brand / Identity -->
-        <a href="#" class="flex items-center gap-2.5 sm:gap-3 group shrink-0">
-          <div class="w-9 h-9 sm:w-11 sm:h-11 rounded-xl sm:rounded-2xl bg-gradient-to-tr from-cyan-500 to-emerald-400 p-0.5 shadow-lg shadow-cyan-500/20 group-hover:scale-105 transition-transform">
+        <a href="#" class="flex items-center gap-2.5 sm:gap-3 group shrink-0 min-w-0">
+          <div class="w-9 h-9 sm:w-11 sm:h-11 rounded-xl sm:rounded-2xl bg-gradient-to-tr from-cyan-500 to-emerald-400 p-0.5 shadow-lg shadow-cyan-500/20 group-hover:scale-105 transition-transform shrink-0">
             <div class="w-full h-full bg-slate-900 rounded-[10px] sm:rounded-[14px] flex items-center justify-center font-mono font-black text-cyan-400 text-sm sm:text-lg">
               IW
             </div>
           </div>
-          <div>
-            <span id="nav-brand-name" class="font-bold text-sm sm:text-lg text-white group-hover:text-cyan-400 transition-colors tracking-tight block">
+          <div class="min-w-0">
+            <span id="nav-brand-name" class="font-bold text-sm sm:text-base md:text-lg text-white group-hover:text-cyan-400 transition-colors tracking-tight truncate block whitespace-nowrap">
               إبراهيم وزني
             </span>
-            <span class="text-[10px] sm:text-[11px] text-cyan-400/90 font-mono tracking-wider block">
+            <span class="text-[10px] sm:text-[11px] text-cyan-400/90 font-mono tracking-wider block whitespace-nowrap">
               FCAI HELWAN '26
             </span>
           </div>
@@ -100,17 +100,17 @@
         <!-- Navbar Action Controls (Theme, Language, Menu) -->
         <div class="flex items-center gap-2 sm:gap-3 shrink-0">
           <!-- Language Toggle Button (Desktop) -->
-          <button id="lang-toggle-btn" class="hidden md:inline-flex px-3.5 py-2 rounded-xl bg-slate-800/80 hover:bg-slate-800 text-slate-200 border border-slate-700/70 hover:border-cyan-500/50 transition-all items-center gap-2">
+          <button id="lang-toggle-btn" class="hidden md:inline-flex h-11 min-h-[44px] min-w-[44px] px-3.5 rounded-xl bg-slate-800/80 hover:bg-slate-700/80 text-slate-200 border border-slate-700/70 hover:border-cyan-500/50 transition-all items-center justify-center gap-2" aria-label="Toggle Language">
             <!-- populated by JS -->
           </button>
 
           <!-- Theme Toggle Button -->
-          <button id="theme-toggle-btn" class="p-2 sm:p-2.5 rounded-xl bg-slate-800/80 hover:bg-slate-800 text-slate-200 border border-slate-700/70 hover:border-cyan-500/50 transition-all flex items-center justify-center" aria-label="Toggle Theme">
+          <button id="theme-toggle-btn" class="w-11 h-11 min-w-[44px] min-h-[44px] rounded-xl bg-slate-800/80 hover:bg-slate-700/80 text-slate-200 border border-slate-700/70 hover:border-cyan-500/50 transition-all flex items-center justify-center" aria-label="Toggle Theme">
             <!-- populated by JS -->
           </button>
 
           <!-- Mobile Hamburger Toggle -->
-          <button id="mobile-menu-btn" class="md:hidden p-2 rounded-xl bg-slate-800 text-slate-200 hover:text-white border border-slate-700 focus:outline-none flex items-center justify-center" aria-label="Open Menu">
+          <button id="mobile-menu-btn" class="md:hidden w-11 h-11 min-w-[44px] min-h-[44px] rounded-xl bg-slate-800 text-slate-200 hover:text-white border border-slate-700 focus:outline-none flex items-center justify-center" aria-label="Open Menu">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"/></svg>
           </button>
         </div>
@@ -119,17 +119,17 @@
     </div>
   </header>
 
-  <!-- Mobile Drawer Menu -->
-  <div id="mobile-menu" class="hidden fixed inset-0 z-50 bg-slate-950/98 backdrop-blur-2xl flex flex-col justify-between p-6">
+  <!-- Mobile Drawer Menu (with smooth slide/fade transition) -->
+  <div id="mobile-menu" class="fixed inset-0 z-50 bg-slate-950/98 backdrop-blur-2xl flex flex-col justify-between p-6 opacity-0 pointer-events-none -translate-y-3 transition-all duration-300 ease-out md:hidden" aria-hidden="true">
     <div class="flex items-center justify-between border-b border-slate-800 pb-4">
       <div class="flex items-center gap-2.5">
         <div class="w-9 h-9 rounded-xl bg-cyan-500/20 text-cyan-400 flex items-center justify-center font-bold font-mono">IW</div>
         <div>
-          <span class="font-bold text-white text-base block">إبراهيم وزني</span>
-          <span class="text-xs text-cyan-400 font-mono">CS & AI Freshman '26</span>
+          <span id="mobile-drawer-brand-name" class="font-bold text-white text-base block">إبراهيم وزني</span>
+          <span id="mobile-drawer-brand-role" class="text-xs text-cyan-400 font-mono">CS & AI Freshman '26</span>
         </div>
       </div>
-      <button id="mobile-menu-close" class="p-2 text-slate-400 hover:text-white rounded-lg bg-slate-900 border border-slate-800" aria-label="Close menu">
+      <button id="mobile-menu-close" class="min-w-[44px] min-h-[44px] flex items-center justify-center p-2 text-slate-400 hover:text-white rounded-xl bg-slate-900 border border-slate-800" aria-label="Close menu">
         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
       </button>
     </div>
@@ -137,7 +137,7 @@
     <nav id="mobile-nav-links" class="flex flex-col gap-3 my-auto"></nav>
 
     <div class="pt-6 border-t border-slate-800 flex flex-col gap-3">
-      <button id="mobile-lang-toggle-btn" class="px-4 py-3 rounded-xl bg-slate-800 text-slate-200 border border-slate-700 w-full text-center font-semibold flex items-center justify-center gap-2">
+      <button id="mobile-lang-toggle-btn" class="min-h-[44px] px-4 py-3 rounded-xl bg-slate-800 text-slate-200 border border-slate-700 w-full text-center font-semibold flex items-center justify-center gap-2">
         <!-- populated by JS -->
       </button>
     </div>
@@ -162,12 +162,12 @@
             </div>
 
             <!-- Name Title -->
-            <h1 id="hero-name" class="text-2xl sm:text-4xl lg:text-5xl font-black text-white tracking-tight leading-[1.2] mb-3 sm:mb-4">
+            <h1 id="hero-name" class="text-2xl sm:text-4xl lg:text-5xl font-black text-white tracking-tight leading-[1.3] sm:leading-[1.2] mb-3 sm:mb-4">
               <!-- populated by JS -->
             </h1>
 
             <!-- Headline with Gradient Accent -->
-            <h2 id="hero-headline" class="text-base sm:text-xl lg:text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 via-teal-300 to-emerald-400 leading-snug mb-5 sm:mb-6">
+            <h2 id="hero-headline" class="text-base sm:text-xl lg:text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 via-teal-300 to-emerald-400 leading-relaxed sm:leading-snug mb-5 sm:mb-6">
               <!-- populated by JS -->
             </h2>
 
@@ -176,8 +176,8 @@
               <!-- populated by JS -->
             </p>
 
-            <!-- Call-to-Action Buttons -->
-            <div id="hero-cta-container" class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full sm:w-auto mb-6 sm:mb-8">
+            <!-- Call-to-Action Buttons (Responsive 1+2 layout on mobile, row on desktop) -->
+            <div id="hero-cta-container" class="w-full sm:w-auto mb-6 sm:mb-8">
               <!-- populated by JS -->
             </div>
 
@@ -209,8 +209,8 @@
                   </div>
                 </div>
 
-                <!-- Floating Badge in corner -->
-                <div id="hero-float-badge" class="floating-badge absolute -top-3 -end-3 z-20">
+                <!-- Floating Badge in corner (safe padding on mobile, overlap on desktop) -->
+                <div id="hero-float-badge" class="floating-badge absolute top-3 end-3 sm:-top-3 sm:-end-3 z-20">
                   <!-- populated by JS -->
                 </div>
               </div>
@@ -248,10 +248,10 @@
           </p>
         </div>
 
-        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-8 items-start mb-12 sm:mb-16">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-8 items-stretch mb-12 sm:mb-16">
           
           <!-- Philosophy Narrative & Routine -->
-          <div class="lg:col-span-7 space-y-5 sm:space-y-6">
+          <div class="lg:col-span-7 flex flex-col justify-between space-y-5 sm:space-y-6">
             <div class="glass-card p-5 sm:p-7 rounded-2xl border border-slate-800">
               <h3 id="about-philosophy-title" class="text-lg sm:text-xl lg:text-2xl font-black text-white mb-4 flex items-center gap-3">
                 <span class="w-2 h-6 sm:h-7 rounded-full bg-cyan-400 shrink-0"></span>
@@ -267,8 +267,8 @@
           </div>
 
           <!-- Academic Routine & Discipline Pillars -->
-          <div class="lg:col-span-5 space-y-4">
-            <div id="discipline-pillars-card" class="glass-card p-5 sm:p-7 rounded-2xl border border-slate-800">
+          <div class="lg:col-span-5 flex flex-col">
+            <div id="discipline-pillars-card" class="glass-card p-5 sm:p-7 rounded-2xl border border-slate-800 h-full flex flex-col justify-between">
               <!-- populated by JS -->
             </div>
           </div>
@@ -285,7 +285,7 @@
               <span><!-- populated by JS --></span>
             </h3>
           </div>
-          <div id="books-shelf-grid" class="grid grid-cols-1 md:grid-cols-3 gap-5 sm:gap-6">
+          <div id="books-shelf-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-6">
             <!-- populated by JS -->
           </div>
         </div>
@@ -313,8 +313,8 @@
           </p>
         </div>
 
-        <!-- Filter Tabs -->
-        <div id="roadmap-filters" class="flex flex-wrap items-center justify-center gap-2 sm:gap-2.5 mb-10 sm:mb-12">
+        <!-- Filter Tabs (Horizontal scroll strip on mobile, flex-wrap on desktop) -->
+        <div id="roadmap-filters" class="flex flex-nowrap overflow-x-auto justify-start sm:justify-center sm:flex-wrap gap-2 sm:gap-2.5 mb-10 sm:mb-12 pb-2 px-1 no-scrollbar">
           <!-- populated by JS -->
         </div>
 
@@ -374,13 +374,13 @@
           </p>
         </div>
 
-        <!-- Blog Filters -->
-        <div id="blog-filters" class="flex flex-wrap items-center justify-center gap-2 sm:gap-2.5 mb-10 sm:mb-12">
+        <!-- Blog Filters (Horizontal scroll strip on mobile, flex-wrap on desktop) -->
+        <div id="blog-filters" class="flex flex-nowrap overflow-x-auto justify-start sm:justify-center sm:flex-wrap gap-2 sm:gap-2.5 mb-10 sm:mb-12 pb-2 px-1 no-scrollbar">
           <!-- populated by JS -->
         </div>
 
         <!-- Blog Articles Grid -->
-        <div id="blog-posts-grid" class="grid grid-cols-1 md:grid-cols-3 gap-5 sm:gap-7">
+        <div id="blog-posts-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 sm:gap-7">
           <!-- populated by JS -->
         </div>
 
@@ -424,25 +424,25 @@
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <label id="form-name-label" class="block text-xs font-semibold text-slate-300 mb-1.5"></label>
-                    <input type="text" id="form-name-input" required class="w-full px-4 py-3 rounded-xl bg-slate-900/90 border border-slate-700/80 focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 text-white placeholder-slate-500 text-sm outline-none transition-all">
+                    <input type="text" id="form-name-input" required class="w-full px-4 py-3 rounded-xl bg-slate-900/90 border border-slate-700/80 focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 text-white placeholder-slate-500 text-base sm:text-sm outline-none transition-all">
                   </div>
                   <div>
                     <label id="form-email-label" class="block text-xs font-semibold text-slate-300 mb-1.5"></label>
-                    <input type="email" id="form-email-input" required class="w-full px-4 py-3 rounded-xl bg-slate-900/90 border border-slate-700/80 focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 text-white placeholder-slate-500 text-sm outline-none transition-all">
+                    <input type="email" id="form-email-input" required class="w-full px-4 py-3 rounded-xl bg-slate-900/90 border border-slate-700/80 focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 text-white placeholder-slate-500 text-base sm:text-sm outline-none transition-all">
                   </div>
                 </div>
 
                 <div>
                   <label id="form-subject-label" class="block text-xs font-semibold text-slate-300 mb-1.5"></label>
-                  <input type="text" id="form-subject-input" required class="w-full px-4 py-3 rounded-xl bg-slate-900/90 border border-slate-700/80 focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 text-white placeholder-slate-500 text-sm outline-none transition-all">
+                  <input type="text" id="form-subject-input" required class="w-full px-4 py-3 rounded-xl bg-slate-900/90 border border-slate-700/80 focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 text-white placeholder-slate-500 text-base sm:text-sm outline-none transition-all">
                 </div>
 
                 <div>
                   <label id="form-message-label" class="block text-xs font-semibold text-slate-300 mb-1.5"></label>
-                  <textarea id="form-message-input" rows="4" required class="w-full px-4 py-3 rounded-xl bg-slate-900/90 border border-slate-700/80 focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 text-white placeholder-slate-500 text-sm outline-none transition-all resize-y"></textarea>
+                  <textarea id="form-message-input" rows="4" required class="w-full px-4 py-3 rounded-xl bg-slate-900/90 border border-slate-700/80 focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 text-white placeholder-slate-500 text-base sm:text-sm outline-none transition-all resize-y"></textarea>
                 </div>
 
-                <button type="submit" id="form-submit-btn" class="btn-glow-cyan w-full py-3.5 px-6 rounded-xl font-bold text-white bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 shadow-lg shadow-cyan-500/25 transition-all text-sm flex items-center justify-center gap-2">
+                <button type="submit" id="form-submit-btn" class="btn-glow-cyan w-full min-h-[44px] py-3.5 px-6 rounded-xl font-bold text-white bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 shadow-lg shadow-cyan-500/25 transition-all text-sm sm:text-base flex items-center justify-center gap-2">
                   <!-- populated by JS -->
                 </button>
               </form>
@@ -467,7 +467,7 @@
           <!-- populated by JS -->
         </p>
       </div>
-      <a href="#" id="back-to-top-btn" class="p-2 sm:p-2.5 rounded-xl bg-slate-800 text-slate-300 hover:text-white hover:bg-slate-700 transition-colors shrink-0" aria-label="Back to Top">
+      <a href="#" id="back-to-top-btn" class="w-11 h-11 min-w-[44px] min-h-[44px] rounded-xl bg-slate-800 text-slate-300 hover:text-white hover:bg-slate-700 transition-colors shrink-0 flex items-center justify-center" aria-label="Back to Top">
         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18"/></svg>
       </a>
     </div>
@@ -476,8 +476,8 @@
   <!-- ========================================================================
        MODAL READER FOR BLOG ARTICLES
        ======================================================================== -->
-  <div id="blog-modal" class="modal-overlay hidden fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 lg:p-8">
-    <div id="blog-modal-content" class="modal-content glass-card w-full max-w-3xl p-5 sm:p-8 lg:p-10 rounded-2xl sm:rounded-3xl border border-slate-700/80 shadow-2xl relative">
+  <div id="blog-modal" class="modal-overlay hidden fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 md:p-6" aria-modal="true" role="dialog">
+    <div id="blog-modal-content" class="modal-content glass-card w-full max-w-3xl max-h-[92dvh] sm:max-h-[88vh] rounded-2xl sm:rounded-3xl border border-slate-700/80 shadow-2xl relative flex flex-col overflow-hidden">
       <!-- Injected by app.js when clicking an article -->
     </div>
   </div>
