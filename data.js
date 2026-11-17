@@ -37,7 +37,7 @@ const portfolioData = {
     email: "ibrahim.haidar.wazni@gmail.com",
     telegram: "https://t.me/ibrahim_wazni",
     whatsapp: "https://wa.me/201000000000", // Easily customizable
-    github: "https://github.com/ibrahim-wazni",
+    github: "https://github.com/ibrahay-04",
     linkedin: "https://linkedin.com/in/ibrahim-wazni",
     bio: {
       ar: "أنا إبراهيم حيدر، طالب في السنة الأولى بكلية الحاسبات والذكاء الاصطناعي. أؤمن بأن البرمجة ليست مجرد كتابة أسطر برمجية، بل هي فن التفكير المنطقي والهندسة المنضبطة. أكرّس يومياً ما بين 8 إلى 12 ساعة من المذاكرة المركزة والممارسة العملية لبناء أساس أكاديمي وتطبيقي صلب—بدءاً من فهم العتاد والبوابات المنطقية، وصولاً إلى لغات البرمجة منخفضة المستوى مثل C وهياكل البيانات. هدفي المستقبلي هو التميز في هندسة البرمجيات وخوارزميات الذكاء الاصطناعي المتقدمة والمنافسة على المنح الدولية.",
@@ -775,15 +775,15 @@ int main() {
         name: "WhatsApp",
         label: { ar: "تواصل مباشر عبر واتساب", en: "WhatsApp Direct" },
         value: "+20 100 000 0000",
-        href: "https://wa.me/201200981049",
+        href: "https://wa.me/201000000000",
         icon: "message-circle",
         color: "emerald"
       },
       {
         name: "GitHub",
         label: { ar: "مستودعات الكود والمشاريع", en: "GitHub Repositories" },
-        value: "github.com/ibrahim-wazni",
-        href: "https://github.com/ibrahim-wazni",
+        value: "github.com/ibrahay-04",
+        href: "https://github.com/ibrahay-04",
         icon: "github",
         color: "slate"
       },

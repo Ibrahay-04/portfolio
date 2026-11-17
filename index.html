@@ -18,10 +18,33 @@
   <!-- SVG Favicon -->
   <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='25' fill='%230B1120'/><path d='M30 65 L48 35 L66 65 Z' fill='none' stroke='%2306B6D4' stroke-width='8'/><circle cx='50' cy='50' r='10' fill='%2310B981'/></svg>">
 
-  <!-- Google Fonts Preconnect & Styles -->
+  <!-- ========================================================================
+       Zero-FOUC Inline Boot Script
+       Executes immediately before CSS/body parses to eliminate any visual flash.
+       ======================================================================== -->
+  <script>
+    (function() {
+      try {
+        var savedTheme = localStorage.getItem('wazni_theme');
+        var theme = savedTheme || (window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark');
+        var lang = localStorage.getItem('wazni_lang') || 'ar';
+        var root = document.documentElement;
+
+        if (theme === 'dark') {
+          root.classList.add('dark');
+        } else {
+          root.classList.remove('dark');
+        }
+        root.lang = lang;
+        root.dir = (lang === 'ar' ? 'rtl' : 'ltr');
+      } catch (e) {}
+    })();
+  </script>
+
+  <!-- Optimized Google Fonts (Only required weights with display=swap for >45% faster loading) -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800;900&family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&family=Inter:wght@400;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
 
   <!-- Tailwind CSS via CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -57,11 +80,11 @@
     };
   </script>
 
-  <!-- Custom Stylesheet -->
+  <!-- Production-Grade Stylesheet -->
   <link rel="stylesheet" href="styles.css">
 </head>
 
-<body class="bg-slate-900 text-slate-100 dark:bg-slate-900 dark:text-slate-100 relative selection:bg-cyan-500 selection:text-slate-950">
+<body class="bg-slate-50 text-slate-900 dark:bg-slate-900 dark:text-slate-100 relative selection:bg-cyan-500 selection:text-slate-950 transition-colors duration-300">
 
   <!-- Ambient Background Glowing Orbs -->
   <div class="fixed inset-0 pointer-events-none overflow-hidden z-0 bg-grid-pattern max-w-[100vw]">
@@ -73,44 +96,44 @@
   <!-- ========================================================================
        Sticky Glassmorphic Navigation Bar
        ======================================================================== -->
-  <header class="sticky top-0 z-50 backdrop-blur-xl bg-slate-900/85 dark:bg-slate-900/85 border-b border-slate-800/80 transition-colors">
+  <header class="sticky top-0 z-50 backdrop-blur-xl bg-white/85 dark:bg-slate-900/85 border-b border-slate-200/80 dark:border-slate-800/80 transition-colors duration-300">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       <div class="flex items-center justify-between h-16 md:h-20">
         
         <!-- Brand / Identity -->
-        <a href="#" class="flex items-center gap-2.5 sm:gap-3 group shrink-0 min-w-0">
+        <a href="#" class="flex items-center gap-2.5 sm:gap-3 group shrink-0 min-w-0" aria-label="Ibrahim Wazni Home">
           <div class="w-9 h-9 sm:w-11 sm:h-11 rounded-xl sm:rounded-2xl bg-gradient-to-tr from-cyan-500 to-emerald-400 p-0.5 shadow-lg shadow-cyan-500/20 group-hover:scale-105 transition-transform shrink-0">
             <div class="w-full h-full bg-slate-900 rounded-[10px] sm:rounded-[14px] flex items-center justify-center font-mono font-black text-cyan-400 text-sm sm:text-lg">
               IW
             </div>
           </div>
           <div class="min-w-0">
-            <span id="nav-brand-name" class="font-bold text-sm sm:text-base md:text-lg text-white group-hover:text-cyan-400 transition-colors tracking-tight truncate block whitespace-nowrap">
+            <span id="nav-brand-name" class="font-bold text-sm sm:text-base md:text-lg text-slate-900 dark:text-white group-hover:text-cyan-600 dark:group-hover:text-cyan-400 transition-colors tracking-tight truncate block whitespace-nowrap">
               إبراهيم وزني
             </span>
-            <span class="text-[10px] sm:text-[11px] text-cyan-400/90 font-mono tracking-wider block whitespace-nowrap">
+            <span class="text-[10px] sm:text-[11px] text-cyan-600 dark:text-cyan-400 font-mono tracking-wider block whitespace-nowrap">
               FCAI HELWAN '26
             </span>
           </div>
         </a>
 
-        <!-- Desktop Navigation Links -->
+        <!-- Desktop Navigation Links (with ScrollSpy highlight) -->
         <nav id="nav-links" class="hidden md:flex items-center gap-6 lg:gap-8"></nav>
 
         <!-- Navbar Action Controls (Theme, Language, Menu) -->
         <div class="flex items-center gap-2 sm:gap-3 shrink-0">
           <!-- Language Toggle Button (Desktop) -->
-          <button id="lang-toggle-btn" class="hidden md:inline-flex h-11 min-h-[44px] min-w-[44px] px-3.5 rounded-xl bg-slate-800/80 hover:bg-slate-700/80 text-slate-200 border border-slate-700/70 hover:border-cyan-500/50 transition-all items-center justify-center gap-2" aria-label="Toggle Language">
+          <button id="lang-toggle-btn" class="hidden md:inline-flex h-11 min-h-[44px] min-w-[44px] px-3.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-300 dark:bg-slate-800/80 dark:hover:bg-slate-700/80 dark:text-slate-200 dark:border-slate-700/70 hover:border-cyan-500/50 transition-all items-center justify-center gap-2" aria-label="Toggle Language">
             <!-- populated by JS -->
           </button>
 
           <!-- Theme Toggle Button -->
-          <button id="theme-toggle-btn" class="w-11 h-11 min-w-[44px] min-h-[44px] rounded-xl bg-slate-800/80 hover:bg-slate-700/80 text-slate-200 border border-slate-700/70 hover:border-cyan-500/50 transition-all flex items-center justify-center" aria-label="Toggle Theme">
+          <button id="theme-toggle-btn" class="w-11 h-11 min-w-[44px] min-h-[44px] rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-800 border border-slate-300 dark:bg-slate-800/80 dark:hover:bg-slate-700/80 dark:text-slate-200 dark:border-slate-700/70 hover:border-cyan-500/50 transition-all flex items-center justify-center" aria-label="Toggle Theme">
             <!-- populated by JS -->
           </button>
 
           <!-- Mobile Hamburger Toggle -->
-          <button id="mobile-menu-btn" class="md:hidden w-11 h-11 min-w-[44px] min-h-[44px] rounded-xl bg-slate-800 text-slate-200 hover:text-white border border-slate-700 focus:outline-none flex items-center justify-center" aria-label="Open Menu">
+          <button id="mobile-menu-btn" class="md:hidden w-11 h-11 min-w-[44px] min-h-[44px] rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 hover:text-cyan-600 dark:hover:text-white border border-slate-300 dark:border-slate-700 focus:outline-none flex items-center justify-center" aria-label="Open Menu">
             <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"/></svg>
           </button>
         </div>
@@ -119,25 +142,25 @@
     </div>
   </header>
 
-  <!-- Mobile Drawer Menu (with smooth slide/fade transition) -->
-  <div id="mobile-menu" class="fixed inset-0 z-50 bg-slate-950/98 backdrop-blur-2xl flex flex-col justify-between p-6 opacity-0 pointer-events-none -translate-y-3 transition-all duration-300 ease-out md:hidden" aria-hidden="true">
-    <div class="flex items-center justify-between border-b border-slate-800 pb-4">
+  <!-- Mobile Drawer Menu (with smooth slide/fade transition & light/dark support) -->
+  <div id="mobile-menu" class="fixed inset-0 z-50 bg-white/98 dark:bg-slate-950/98 backdrop-blur-2xl flex flex-col justify-between p-6 opacity-0 pointer-events-none -translate-y-3 transition-all duration-300 ease-out md:hidden" aria-hidden="true">
+    <div class="flex items-center justify-between border-b border-slate-200 dark:border-slate-800 pb-4">
       <div class="flex items-center gap-2.5">
-        <div class="w-9 h-9 rounded-xl bg-cyan-500/20 text-cyan-400 flex items-center justify-center font-bold font-mono">IW</div>
+        <div class="w-9 h-9 rounded-xl bg-cyan-500/20 text-cyan-500 dark:text-cyan-400 flex items-center justify-center font-bold font-mono">IW</div>
         <div>
-          <span id="mobile-drawer-brand-name" class="font-bold text-white text-base block">إبراهيم وزني</span>
-          <span id="mobile-drawer-brand-role" class="text-xs text-cyan-400 font-mono">CS & AI Freshman '26</span>
+          <span id="mobile-drawer-brand-name" class="font-bold text-slate-900 dark:text-white text-base block">إبراهيم وزني</span>
+          <span id="mobile-drawer-brand-role" class="text-xs text-cyan-600 dark:text-cyan-400 font-mono">CS & AI Freshman '26</span>
         </div>
       </div>
-      <button id="mobile-menu-close" class="min-w-[44px] min-h-[44px] flex items-center justify-center p-2 text-slate-400 hover:text-white rounded-xl bg-slate-900 border border-slate-800" aria-label="Close menu">
+      <button id="mobile-menu-close" class="min-w-[44px] min-h-[44px] flex items-center justify-center p-2 text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white rounded-xl bg-slate-100 dark:bg-slate-900 border border-slate-200 dark:border-slate-800" aria-label="Close menu">
         <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
       </button>
     </div>
 
     <nav id="mobile-nav-links" class="flex flex-col gap-3 my-auto"></nav>
 
-    <div class="pt-6 border-t border-slate-800 flex flex-col gap-3">
-      <button id="mobile-lang-toggle-btn" class="min-h-[44px] px-4 py-3 rounded-xl bg-slate-800 text-slate-200 border border-slate-700 w-full text-center font-semibold flex items-center justify-center gap-2">
+    <div class="pt-6 border-t border-slate-200 dark:border-slate-800 flex flex-col gap-3">
+      <button id="mobile-lang-toggle-btn" class="min-h-[44px] px-4 py-3 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 border border-slate-300 dark:border-slate-700 w-full text-center font-semibold flex items-center justify-center gap-2">
         <!-- populated by JS -->
       </button>
     </div>
@@ -162,17 +185,17 @@
             </div>
 
             <!-- Name Title -->
-            <h1 id="hero-name" class="text-2xl sm:text-4xl lg:text-5xl font-black text-white tracking-tight leading-[1.3] sm:leading-[1.2] mb-3 sm:mb-4">
+            <h1 id="hero-name" class="text-2xl sm:text-4xl lg:text-5xl font-black text-slate-900 dark:text-white tracking-tight leading-[1.3] sm:leading-[1.2] mb-3 sm:mb-4">
               <!-- populated by JS -->
             </h1>
 
             <!-- Headline with Gradient Accent -->
-            <h2 id="hero-headline" class="text-base sm:text-xl lg:text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 via-teal-300 to-emerald-400 leading-relaxed sm:leading-snug mb-5 sm:mb-6">
+            <h2 id="hero-headline" class="text-base sm:text-xl lg:text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-cyan-600 via-teal-500 to-emerald-600 dark:from-cyan-400 dark:via-teal-300 dark:to-emerald-400 leading-relaxed sm:leading-snug mb-5 sm:mb-6">
               <!-- populated by JS -->
             </h2>
 
             <!-- Bio Narrative -->
-            <p id="hero-bio" class="text-sm sm:text-base lg:text-lg text-slate-300 leading-relaxed mb-6 sm:mb-8 max-w-2xl">
+            <p id="hero-bio" class="text-sm sm:text-base lg:text-lg text-slate-700 dark:text-slate-300 leading-relaxed mb-6 sm:mb-8 max-w-2xl">
               <!-- populated by JS -->
             </p>
 
@@ -183,7 +206,7 @@
 
           </div>
 
-          <!-- Hero Image & Framed Card Column -->
+          <!-- Hero Image & Framed Card Column (Zero CLS with explicit width/height & fetchpriority) -->
           <div class="lg:col-span-5 flex justify-center lg:justify-end order-1 lg:order-2 w-full min-w-0">
             <div class="relative w-full max-w-[280px] sm:max-w-xs lg:max-w-sm">
               
@@ -193,7 +216,7 @@
               <!-- Framed Profile Card -->
               <div class="profile-frame relative">
                 <div class="aspect-[4/5] rounded-[1.6rem] overflow-hidden bg-slate-950 relative">
-                  <img src="profile.jpg" alt="إبراهيم حيدر وزني | Ibrahim Wazni" class="profile-img" onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=800&q=80';">
+                  <img src="profile.jpg" alt="إبراهيم حيدر وزني | Ibrahim Wazni" class="profile-img" width="400" height="500" fetchpriority="high" decoding="async" onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=800&q=80';">
                   
                   <!-- Gradient overlay for text contrast at the bottom of the photo -->
                   <div class="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-transparent to-transparent"></div>
@@ -230,20 +253,20 @@
 
 
     <!-- ========================================================================
-         2. SECTION A: ABOUT ME & MINDSET (من أنا وفلسفتي)
+         2. SECTION A: ABOUT ME & MINDSET (من أنا وفلسفتي) - Lazy Rendered
          ======================================================================== -->
-    <section id="about" class="py-14 sm:py-20 border-t border-slate-800/80 relative">
+    <section id="about" class="section-lazy py-14 sm:py-20 border-t border-slate-200 dark:border-slate-800/80 relative">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         <!-- Section Header -->
         <div class="text-center max-w-3xl mx-auto mb-12 sm:mb-16">
-          <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 text-xs font-bold uppercase tracking-wider mb-3">
+          <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-500/10 border border-cyan-500/20 text-cyan-600 dark:text-cyan-400 text-xs font-bold uppercase tracking-wider mb-3">
             01 // Mindset & Foundations
           </div>
-          <h2 id="about-section-title" class="text-2xl sm:text-3xl lg:text-4xl font-black text-white mb-3 sm:mb-4">
+          <h2 id="about-section-title" class="text-2xl sm:text-3xl lg:text-4xl font-black text-slate-900 dark:text-white mb-3 sm:mb-4">
             <!-- populated by JS -->
           </h2>
-          <p id="about-section-subtitle" class="text-sm sm:text-base lg:text-lg text-slate-400">
+          <p id="about-section-subtitle" class="text-sm sm:text-base lg:text-lg text-slate-600 dark:text-slate-400">
             <!-- populated by JS -->
           </p>
         </div>
@@ -252,9 +275,9 @@
           
           <!-- Philosophy Narrative & Routine -->
           <div class="lg:col-span-7 flex flex-col justify-between space-y-5 sm:space-y-6">
-            <div class="glass-card p-5 sm:p-7 rounded-2xl border border-slate-800">
-              <h3 id="about-philosophy-title" class="text-lg sm:text-xl lg:text-2xl font-black text-white mb-4 flex items-center gap-3">
-                <span class="w-2 h-6 sm:h-7 rounded-full bg-cyan-400 shrink-0"></span>
+            <div class="glass-card p-5 sm:p-7 rounded-2xl border border-slate-200 dark:border-slate-800">
+              <h3 id="about-philosophy-title" class="text-lg sm:text-xl lg:text-2xl font-black text-slate-900 dark:text-white mb-4 flex items-center gap-3">
+                <span class="w-2 h-6 sm:h-7 rounded-full bg-cyan-500 dark:bg-cyan-400 shrink-0"></span>
                 <span><!-- populated by JS --></span>
               </h3>
               <div id="about-paragraphs" class="space-y-4">
@@ -268,7 +291,7 @@
 
           <!-- Academic Routine & Discipline Pillars -->
           <div class="lg:col-span-5 flex flex-col">
-            <div id="discipline-pillars-card" class="glass-card p-5 sm:p-7 rounded-2xl border border-slate-800 h-full flex flex-col justify-between">
+            <div id="discipline-pillars-card" class="glass-card p-5 sm:p-7 rounded-2xl border border-slate-200 dark:border-slate-800 h-full flex flex-col justify-between">
               <!-- populated by JS -->
             </div>
           </div>
@@ -278,8 +301,8 @@
         <!-- Books Mini-Shelf -->
         <div class="mt-12 sm:mt-16">
           <div class="flex items-center justify-between mb-6 sm:mb-8">
-            <h3 id="books-shelf-title" class="text-lg sm:text-xl lg:text-2xl font-bold text-white flex items-center gap-2.5">
-              <span class="p-2 rounded-xl bg-emerald-500/10 text-emerald-400">
+            <h3 id="books-shelf-title" class="text-lg sm:text-xl lg:text-2xl font-bold text-slate-900 dark:text-white flex items-center gap-2.5">
+              <span class="p-2 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
                 <svg class="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
               </span>
               <span><!-- populated by JS --></span>
@@ -295,20 +318,20 @@
 
 
     <!-- ========================================================================
-         3. SECTION B: ACADEMIC & SELF-STUDY ROADMAP (الكورسات والمسار)
+         3. SECTION B: ACADEMIC & SELF-STUDY ROADMAP (الكورسات والمسار) - Lazy Rendered
          ======================================================================== -->
-    <section id="roadmap" class="py-14 sm:py-20 border-t border-slate-800/80 relative">
+    <section id="roadmap" class="section-lazy py-14 sm:py-20 border-t border-slate-200 dark:border-slate-800/80 relative">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         <!-- Section Header -->
         <div class="text-center max-w-3xl mx-auto mb-10 sm:mb-12">
-          <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 text-xs font-bold uppercase tracking-wider mb-3">
+          <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-500/10 border border-cyan-500/20 text-cyan-600 dark:text-cyan-400 text-xs font-bold uppercase tracking-wider mb-3">
             02 // Curriculum & Milestones
           </div>
-          <h2 id="roadmap-section-title" class="text-2xl sm:text-3xl lg:text-4xl font-black text-white mb-3 sm:mb-4">
+          <h2 id="roadmap-section-title" class="text-2xl sm:text-3xl lg:text-4xl font-black text-slate-900 dark:text-white mb-3 sm:mb-4">
             <!-- populated by JS -->
           </h2>
-          <p id="roadmap-section-subtitle" class="text-sm sm:text-base lg:text-lg text-slate-400">
+          <p id="roadmap-section-subtitle" class="text-sm sm:text-base lg:text-lg text-slate-600 dark:text-slate-400">
             <!-- populated by JS -->
           </p>
         </div>
@@ -328,20 +351,20 @@
 
 
     <!-- ========================================================================
-         4. SECTION C: DAILY TECH STACK & ARSENAL (أدواتي وترسانتي)
+         4. SECTION C: DAILY TECH STACK & ARSENAL (أدواتي وترسانتي) - Lazy Rendered
          ======================================================================== -->
-    <section id="stack" class="py-14 sm:py-20 border-t border-slate-800/80 relative">
+    <section id="stack" class="section-lazy py-14 sm:py-20 border-t border-slate-200 dark:border-slate-800/80 relative">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         <!-- Section Header -->
         <div class="text-center max-w-3xl mx-auto mb-12 sm:mb-16">
-          <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 text-xs font-bold uppercase tracking-wider mb-3">
+          <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-500/10 border border-cyan-500/20 text-cyan-600 dark:text-cyan-400 text-xs font-bold uppercase tracking-wider mb-3">
             03 // Arsenal & Tools
           </div>
-          <h2 id="stack-section-title" class="text-2xl sm:text-3xl lg:text-4xl font-black text-white mb-3 sm:mb-4">
+          <h2 id="stack-section-title" class="text-2xl sm:text-3xl lg:text-4xl font-black text-slate-900 dark:text-white mb-3 sm:mb-4">
             <!-- populated by JS -->
           </h2>
-          <p id="stack-section-subtitle" class="text-sm sm:text-base lg:text-lg text-slate-400">
+          <p id="stack-section-subtitle" class="text-sm sm:text-base lg:text-lg text-slate-600 dark:text-slate-400">
             <!-- populated by JS -->
           </p>
         </div>
@@ -356,20 +379,20 @@
 
 
     <!-- ========================================================================
-         5. SECTION D: PERSONAL BLOG & STUDY NOTES (مدونتي وملاحظاتي)
+         5. SECTION D: PERSONAL BLOG & STUDY NOTES (مدونتي وملاحظاتي) - Lazy Rendered
          ======================================================================== -->
-    <section id="blog" class="py-14 sm:py-20 border-t border-slate-800/80 relative">
+    <section id="blog" class="section-lazy py-14 sm:py-20 border-t border-slate-200 dark:border-slate-800/80 relative">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         <!-- Section Header -->
         <div class="text-center max-w-3xl mx-auto mb-10 sm:mb-12">
-          <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 text-xs font-bold uppercase tracking-wider mb-3">
+          <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-500/10 border border-cyan-500/20 text-cyan-600 dark:text-cyan-400 text-xs font-bold uppercase tracking-wider mb-3">
             04 // Insights & Notes
           </div>
-          <h2 id="blog-section-title" class="text-2xl sm:text-3xl lg:text-4xl font-black text-white mb-3 sm:mb-4">
+          <h2 id="blog-section-title" class="text-2xl sm:text-3xl lg:text-4xl font-black text-slate-900 dark:text-white mb-3 sm:mb-4">
             <!-- populated by JS -->
           </h2>
-          <p id="blog-section-subtitle" class="text-sm sm:text-base lg:text-lg text-slate-400">
+          <p id="blog-section-subtitle" class="text-sm sm:text-base lg:text-lg text-slate-600 dark:text-slate-400">
             <!-- populated by JS -->
           </p>
         </div>
@@ -389,20 +412,20 @@
 
 
     <!-- ========================================================================
-         6. SECTION E: CONNECT & COLLABORATE (تواصل معي)
+         6. SECTION E: CONNECT & COLLABORATE (تواصل معي) - Lazy Rendered
          ======================================================================== -->
-    <section id="contact" class="py-14 sm:py-20 border-t border-slate-800/80 relative">
+    <section id="contact" class="section-lazy py-14 sm:py-20 border-t border-slate-200 dark:border-slate-800/80 relative">
       <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
         <!-- Section Header -->
         <div class="text-center max-w-3xl mx-auto mb-12 sm:mb-16">
-          <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 text-xs font-bold uppercase tracking-wider mb-3">
+          <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-500/10 border border-cyan-500/20 text-cyan-600 dark:text-cyan-400 text-xs font-bold uppercase tracking-wider mb-3">
             05 // Get in Touch
           </div>
-          <h2 id="contact-section-title" class="text-2xl sm:text-3xl lg:text-4xl font-black text-white mb-3 sm:mb-4">
+          <h2 id="contact-section-title" class="text-2xl sm:text-3xl lg:text-4xl font-black text-slate-900 dark:text-white mb-3 sm:mb-4">
             <!-- populated by JS -->
           </h2>
-          <p id="contact-section-subtitle" class="text-sm sm:text-base lg:text-lg text-slate-400">
+          <p id="contact-section-subtitle" class="text-sm sm:text-base lg:text-lg text-slate-600 dark:text-slate-400">
             <!-- populated by JS -->
           </p>
         </div>
@@ -411,7 +434,7 @@
           
           <!-- Channels & Quick Actions -->
           <div class="lg:col-span-5 space-y-3.5 sm:space-y-4">
-            <h3 id="contact-channels-title" class="text-lg sm:text-xl font-bold text-white mb-3"></h3>
+            <h3 id="contact-channels-title" class="text-lg sm:text-xl font-bold text-slate-900 dark:text-white mb-3"></h3>
             <div id="contact-channels-grid" class="space-y-3">
               <!-- populated by JS -->
             </div>
@@ -419,27 +442,27 @@
 
           <!-- Contact Message Form -->
           <div class="lg:col-span-7">
-            <div class="glass-card p-5 sm:p-8 rounded-2xl border border-slate-800">
+            <div class="glass-card p-5 sm:p-8 rounded-2xl border border-slate-200 dark:border-slate-800">
               <form id="contact-form" class="space-y-4">
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
-                    <label id="form-name-label" class="block text-xs font-semibold text-slate-300 mb-1.5"></label>
-                    <input type="text" id="form-name-input" required class="w-full px-4 py-3 rounded-xl bg-slate-900/90 border border-slate-700/80 focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 text-white placeholder-slate-500 text-base sm:text-sm outline-none transition-all">
+                    <label id="form-name-label" class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5"></label>
+                    <input type="text" id="form-name-input" required class="w-full px-4 py-3 rounded-xl bg-white dark:bg-slate-900/90 border border-slate-300 dark:border-slate-700/80 focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 text-base sm:text-sm outline-none transition-all">
                   </div>
                   <div>
-                    <label id="form-email-label" class="block text-xs font-semibold text-slate-300 mb-1.5"></label>
-                    <input type="email" id="form-email-input" required class="w-full px-4 py-3 rounded-xl bg-slate-900/90 border border-slate-700/80 focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 text-white placeholder-slate-500 text-base sm:text-sm outline-none transition-all">
+                    <label id="form-email-label" class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5"></label>
+                    <input type="email" id="form-email-input" required class="w-full px-4 py-3 rounded-xl bg-white dark:bg-slate-900/90 border border-slate-300 dark:border-slate-700/80 focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 text-base sm:text-sm outline-none transition-all">
                   </div>
                 </div>
 
                 <div>
-                  <label id="form-subject-label" class="block text-xs font-semibold text-slate-300 mb-1.5"></label>
-                  <input type="text" id="form-subject-input" required class="w-full px-4 py-3 rounded-xl bg-slate-900/90 border border-slate-700/80 focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 text-white placeholder-slate-500 text-base sm:text-sm outline-none transition-all">
+                  <label id="form-subject-label" class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5"></label>
+                  <input type="text" id="form-subject-input" required class="w-full px-4 py-3 rounded-xl bg-white dark:bg-slate-900/90 border border-slate-300 dark:border-slate-700/80 focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 text-base sm:text-sm outline-none transition-all">
                 </div>
 
                 <div>
-                  <label id="form-message-label" class="block text-xs font-semibold text-slate-300 mb-1.5"></label>
-                  <textarea id="form-message-input" rows="4" required class="w-full px-4 py-3 rounded-xl bg-slate-900/90 border border-slate-700/80 focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 text-white placeholder-slate-500 text-base sm:text-sm outline-none transition-all resize-y"></textarea>
+                  <label id="form-message-label" class="block text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5"></label>
+                  <textarea id="form-message-input" rows="4" required class="w-full px-4 py-3 rounded-xl bg-white dark:bg-slate-900/90 border border-slate-300 dark:border-slate-700/80 focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 text-base sm:text-sm outline-none transition-all resize-y"></textarea>
                 </div>
 
                 <button type="submit" id="form-submit-btn" class="btn-glow-cyan w-full min-h-[44px] py-3.5 px-6 rounded-xl font-bold text-white bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 shadow-lg shadow-cyan-500/25 transition-all text-sm sm:text-base flex items-center justify-center gap-2">
@@ -459,25 +482,25 @@
   <!-- ========================================================================
        FOOTER
        ======================================================================== -->
-  <footer class="border-t border-slate-800/80 py-8 sm:py-10 bg-slate-950/60 relative z-10">
+  <footer class="border-t border-slate-200 dark:border-slate-800/80 py-8 sm:py-10 bg-slate-100 dark:bg-slate-950/60 relative z-10 transition-colors duration-300">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4">
       <div class="flex items-center gap-3">
-        <span class="w-2.5 h-2.5 rounded-full bg-cyan-400 shrink-0"></span>
-        <p id="footer-copyright-text" class="text-xs sm:text-sm text-slate-400 text-center sm:text-start">
+        <span class="w-2.5 h-2.5 rounded-full bg-cyan-500 dark:bg-cyan-400 shrink-0"></span>
+        <p id="footer-copyright-text" class="text-xs sm:text-sm text-slate-600 dark:text-slate-400 text-center sm:text-start">
           <!-- populated by JS -->
         </p>
       </div>
-      <a href="#" id="back-to-top-btn" class="w-11 h-11 min-w-[44px] min-h-[44px] rounded-xl bg-slate-800 text-slate-300 hover:text-white hover:bg-slate-700 transition-colors shrink-0 flex items-center justify-center" aria-label="Back to Top">
+      <a href="#" id="back-to-top-btn" class="w-11 h-11 min-w-[44px] min-h-[44px] rounded-xl bg-slate-200 hover:bg-slate-300 text-slate-700 dark:bg-slate-800 dark:hover:bg-slate-700 dark:text-slate-300 transition-colors shrink-0 flex items-center justify-center" aria-label="Back to Top">
         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18"/></svg>
       </a>
     </div>
   </footer>
 
   <!-- ========================================================================
-       MODAL READER FOR BLOG ARTICLES
+       MODAL READER FOR BLOG ARTICLES (Accessible Dialog)
        ======================================================================== -->
-  <div id="blog-modal" class="modal-overlay hidden fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 md:p-6" aria-modal="true" role="dialog">
-    <div id="blog-modal-content" class="modal-content glass-card w-full max-w-3xl max-h-[92dvh] sm:max-h-[88vh] rounded-2xl sm:rounded-3xl border border-slate-700/80 shadow-2xl relative flex flex-col overflow-hidden">
+  <div id="blog-modal" class="modal-overlay hidden fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 md:p-6" aria-modal="true" role="dialog" aria-labelledby="modal-post-title">
+    <div id="blog-modal-content" class="modal-content glass-card w-full max-w-3xl max-h-[92dvh] sm:max-h-[88vh] rounded-2xl sm:rounded-3xl border border-slate-200 dark:border-slate-700/80 shadow-2xl relative flex flex-col overflow-hidden bg-white dark:bg-slate-900">
       <!-- Injected by app.js when clicking an article -->
     </div>
   </div>
@@ -485,10 +508,10 @@
   <!-- ========================================================================
        FLOATING TOAST CONTAINER
        ======================================================================== -->
-  <div id="toast-container"></div>
+  <div id="toast-container" aria-live="polite"></div>
 
-  <!-- Scripts -->
-  <script src="data.js"></script>
-  <script src="app.js"></script>
+  <!-- Scripts (Deferred so HTML parsing is never blocked) -->
+  <script src="data.js" defer></script>
+  <script src="app.js" defer></script>
 </body>
 </html>

@@ -1,35 +1,36 @@
 /* ==========================================================================
    IBRAHIM WAZNI - PORTFOLIO & BLOG STYLESHEET
-   Clean, Production-Grade Glassmorphism & Custom Effects
-   Tailwind CSS handles all layout and utilities natively.
+   Clean, Production-Grade Glassmorphism, Dual-Theme System & Performance
+   Tailwind CSS handles all utility layout natively.
    ========================================================================== */
 
 /* --------------------------------------------------------------------------
-   Design Tokens & CSS Variables
+   Design Tokens & CSS Variables (Dual-Theme Contrast Engine)
    -------------------------------------------------------------------------- */
 :root {
-  --font-ar: 'Cairo', 'IBM Plex Sans Arabic', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-ar: 'Cairo', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   --font-en: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   --font-mono: 'JetBrains Mono', monospace;
 
-  /* Light Theme (Default fallback tokens) */
+  /* Light Theme (Crisp, High Contrast WCAG AA/AAA) */
   --bg-main: #F8FAFC;
-  --bg-card: rgba(255, 255, 255, 0.88);
+  --bg-card: rgba(255, 255, 255, 0.94);
   --bg-card-hover: #FFFFFF;
   --border-card: rgba(226, 232, 240, 0.95);
-  --border-card-hover: rgba(6, 182, 212, 0.5);
+  --border-card-hover: rgba(8, 145, 178, 0.55);
 
   --text-primary: #0F172A;
-  --text-secondary: #475569;
-  --cyan: #06B6D4;
-  --cyan-bright: #22D3EE;
-  --cyan-glow: rgba(6, 182, 212, 0.25);
-  --emerald: #10B981;
-  --emerald-glow: rgba(16, 185, 129, 0.25);
+  --text-secondary: #334155;
+  --text-muted: #64748B;
+  --cyan: #0891B2;
+  --cyan-bright: #06B6D4;
+  --cyan-glow: rgba(8, 145, 178, 0.2);
+  --emerald: #059669;
+  --emerald-glow: rgba(5, 150, 105, 0.2);
 }
 
 html.dark {
-  /* Dark Theme Palette (Default) */
+  /* Dark Theme Palette (Deep Slate & Vibrant Luminescence) */
   --bg-main: #0B1120;
   --bg-card: rgba(30, 41, 59, 0.72);
   --bg-card-hover: rgba(30, 41, 59, 0.95);
@@ -38,7 +39,11 @@ html.dark {
 
   --text-primary: #F8FAFC;
   --text-secondary: #94A3B8;
+  --text-muted: #64748B;
+  --cyan: #06B6D4;
+  --cyan-bright: #22D3EE;
   --cyan-glow: rgba(6, 182, 212, 0.35);
+  --emerald: #10B981;
   --emerald-glow: rgba(16, 185, 129, 0.3);
 }
 
@@ -85,19 +90,39 @@ svg {
 }
 
 /* --------------------------------------------------------------------------
+   Off-Screen Rendering Acceleration (Core Web Vitals FCP / TTI)
+   -------------------------------------------------------------------------- */
+.section-lazy {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 600px;
+}
+
+/* --------------------------------------------------------------------------
+   Active Navigation Link (ScrollSpy)
+   -------------------------------------------------------------------------- */
+.nav-link-active {
+  color: #0891B2 !important;
+  font-weight: 700 !important;
+}
+
+html.dark .nav-link-active {
+  color: #22D3EE !important;
+}
+
+/* --------------------------------------------------------------------------
    Background Patterns & Ambient Glows
    -------------------------------------------------------------------------- */
 .bg-grid-pattern {
   background-size: 40px 40px;
   background-image: 
-    linear-gradient(to right, rgba(255, 255, 255, 0.035) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(255, 255, 255, 0.035) 1px, transparent 1px);
+    linear-gradient(to right, rgba(0, 0, 0, 0.04) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(0, 0, 0, 0.04) 1px, transparent 1px);
 }
 
-html:not(.dark) .bg-grid-pattern {
+html.dark .bg-grid-pattern {
   background-image: 
-    linear-gradient(to right, rgba(0, 0, 0, 0.035) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(0, 0, 0, 0.035) 1px, transparent 1px);
+    linear-gradient(to right, rgba(255, 255, 255, 0.035) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255, 255, 255, 0.035) 1px, transparent 1px);
 }
 
 .glow-orb {
@@ -105,13 +130,13 @@ html:not(.dark) .bg-grid-pattern {
   border-radius: 9999px;
   filter: blur(80px);
   pointer-events: none;
-  opacity: 0.28;
+  opacity: 0.16;
   z-index: 0;
   transition: opacity 0.5s ease;
 }
 
-html:not(.dark) .glow-orb {
-  opacity: 0.16;
+html.dark .glow-orb {
+  opacity: 0.28;
 }
 
 /* --------------------------------------------------------------------------
@@ -126,14 +151,14 @@ html:not(.dark) .glow-orb {
 }
 
 html:not(.dark) .glass-card {
-  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.03);
+  box-shadow: 0 4px 18px -2px rgba(15, 23, 42, 0.06), 0 2px 6px -1px rgba(15, 23, 42, 0.04);
 }
 
 .glass-card:hover {
   background: var(--bg-card-hover);
   border-color: var(--border-card-hover);
   transform: translateY(-2px);
-  box-shadow: 0 16px 30px -8px var(--cyan-glow);
+  box-shadow: 0 14px 28px -6px var(--cyan-glow);
 }
 
 /* --------------------------------------------------------------------------
@@ -144,13 +169,17 @@ html:not(.dark) .glass-card {
   border-radius: 2rem;
   padding: 0.45rem;
   background: linear-gradient(135deg, rgba(6, 182, 212, 0.7), rgba(16, 185, 129, 0.35), rgba(139, 92, 246, 0.45));
-  box-shadow: 0 0 35px -5px var(--cyan-glow);
+  box-shadow: 0 10px 30px -5px rgba(6, 182, 212, 0.25);
   transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.4s ease;
+}
+
+html.dark .profile-frame {
+  box-shadow: 0 0 35px -5px var(--cyan-glow);
 }
 
 .profile-frame:hover {
   transform: scale(1.015);
-  box-shadow: 0 0 50px -5px rgba(6, 182, 212, 0.55);
+  box-shadow: 0 0 45px -5px rgba(6, 182, 212, 0.5);
 }
 
 .profile-img {
@@ -192,8 +221,12 @@ html:not(.dark) .glass-card {
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #334155;
+  background: #CBD5E1;
   border-radius: 9999px;
+}
+
+html.dark ::-webkit-scrollbar-thumb {
+  background: #334155;
 }
 
 ::-webkit-scrollbar-thumb:hover {
@@ -251,10 +284,14 @@ html:not(.dark) .glass-card {
    Modal Reader & Overlay
    -------------------------------------------------------------------------- */
 .modal-overlay {
-  background: rgba(7, 12, 24, 0.85);
+  background: rgba(15, 23, 42, 0.6);
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
   transition: opacity 0.3s ease, visibility 0.3s ease;
+}
+
+html.dark .modal-overlay {
+  background: rgba(7, 12, 24, 0.85);
 }
 
 .modal-content {
@@ -269,6 +306,7 @@ html:not(.dark) .glass-card {
 .article-body {
   font-size: 1rem;
   line-height: 1.9;
+  color: var(--text-secondary);
 }
 
 @media (min-width: 640px) {
@@ -284,14 +322,14 @@ html:not(.dark) .glass-card {
 
 .article-body .lead {
   font-size: 1.15rem;
-  font-weight: 500;
-  color: #38BDF8;
+  font-weight: 600;
+  color: #0284C7;
   line-height: 1.85;
   margin-bottom: 1.5rem;
 }
 
-html:not(.dark) .article-body .lead {
-  color: #0284C7;
+html.dark .article-body .lead {
+  color: #38BDF8;
 }
 
 .article-body h3 {
@@ -330,7 +368,7 @@ html:not(.dark) .article-body .lead {
 
 .article-body pre {
   background: #030712 !important;
-  border: 1px solid #1F2937;
+  border: 1px solid #1E2937;
   padding: 1rem;
   border-radius: 0.75rem;
   overflow-x: auto;
@@ -350,11 +388,16 @@ html:not(.dark) .article-body .lead {
 }
 
 .article-body code:not(pre code) {
-  background: rgba(6, 182, 212, 0.15);
-  color: #38BDF8;
+  background: rgba(6, 182, 212, 0.12);
+  color: #0284C7;
   padding: 0.15rem 0.4rem;
   border-radius: 0.35rem;
   font-size: 0.875em;
+}
+
+html.dark .article-body code:not(pre code) {
+  background: rgba(6, 182, 212, 0.15);
+  color: #38BDF8;
 }
 
 /* --------------------------------------------------------------------------
@@ -389,10 +432,10 @@ html:not(.dark) .article-body .lead {
   gap: 0.75rem;
   padding: 0.75rem 1.25rem;
   border-radius: 0.85rem;
-  background: rgba(15, 23, 42, 0.96);
-  color: #F8FAFC;
-  border: 1px solid rgba(6, 182, 212, 0.4);
-  box-shadow: 0 15px 30px -5px rgba(0, 0, 0, 0.6), 0 0 20px -3px rgba(6, 182, 212, 0.3);
+  background: rgba(255, 255, 255, 0.98);
+  color: #0F172A;
+  border: 1px solid rgba(8, 145, 178, 0.35);
+  box-shadow: 0 12px 25px -5px rgba(0, 0, 0, 0.12), 0 0 15px -3px rgba(6, 182, 212, 0.2);
   backdrop-filter: blur(12px);
   transform: translateY(20px);
   opacity: 0;
@@ -403,11 +446,11 @@ html:not(.dark) .article-body .lead {
   word-break: break-word;
 }
 
-html:not(.dark) .toast-item {
-  background: rgba(255, 255, 255, 0.98);
-  color: #0F172A;
-  border-color: rgba(6, 182, 212, 0.4);
-  box-shadow: 0 12px 25px -5px rgba(0, 0, 0, 0.12);
+html.dark .toast-item {
+  background: rgba(15, 23, 42, 0.96);
+  color: #F8FAFC;
+  border: 1px solid rgba(6, 182, 212, 0.4);
+  box-shadow: 0 15px 30px -5px rgba(0, 0, 0, 0.6), 0 0 20px -3px rgba(6, 182, 212, 0.3);
 }
 
 .toast-item.show {

@@ -2,10 +2,40 @@
  * ====================================================================
  * APPLICATION CONTROLLER - IBRAHIM WAZNI PORTFOLIO & BLOG
  * ====================================================================
- * Senior Frontend & Responsive UI/UX Refactored Engine.
- * Manages bilingual AR/EN state, dark/light theme, interactive filters,
- * responsive modal reader, smooth mobile drawer, and toast notifications.
+ * Principal Frontend Architect & Web Performance Engineered Controller.
+ * Features:
+ *  - SafeStorage (crash-proof defensive localStorage wrapper)
+ *  - Single-pass boot architecture (zero double-render)
+ *  - Fault-isolated render pipeline with per-section try/catch
+ *  - Pure Event Delegation (zero memory leaks / listener churn)
+ *  - URL Deep-Linking (#post=<id>) with bidirectional hash synchronization
+ *  - Full Modal A11y with focus restoration & dialog semantics
+ *  - High-performance IntersectionObserver ScrollSpy (60 FPS)
+ *  - Full WCAG AA/AAA Dual-Theme contrast system
+ *  - One-click email copy & smart mailto fallback
  */
+
+// Defensive Storage Wrapper (prevents SecurityError / incognito crashes)
+const SafeStorage = {
+  getItem(key, fallback = null) {
+    try {
+      const val = localStorage.getItem(key);
+      return val !== null ? val : fallback;
+    } catch (e) {
+      console.warn(`[SafeStorage] Could not read "${key}":`, e);
+      return fallback;
+    }
+  },
+  setItem(key, value) {
+    try {
+      localStorage.setItem(key, value);
+      return true;
+    } catch (e) {
+      console.warn(`[SafeStorage] Could not write "${key}":`, e);
+      return false;
+    }
+  }
+};
 
 // Global SVG Icons dictionary for zero-dependency, ultra-fast rendering
 const SVG_ICONS = {
@@ -52,8 +82,8 @@ function getIcon(name, customClass = '') {
 
 // Application State
 const AppState = {
-  lang: localStorage.getItem('wazni_lang') || 'ar',
-  theme: localStorage.getItem('wazni_theme') || 'dark',
+  lang: SafeStorage.getItem('wazni_lang', 'ar'),
+  theme: SafeStorage.getItem('wazni_theme', 'dark'),
   activeRoadmapFilter: 'all',
   activeBlogFilter: 'all',
   currentModalPostId: null
@@ -63,22 +93,30 @@ const AppState = {
 class PortfolioApp {
   constructor() {
     this.data = window.portfolioData;
+    this.lastFocusedElement = null;
+    this.scrollSpyObserver = null;
     this.init();
   }
 
+  /**
+   * Boot lifecycle: Single-pass render, event binding, scrollspy, and URL hash checking.
+   * Completely eliminates previous double-render bug.
+   */
   init() {
     this.applyTheme(AppState.theme, false);
-    this.applyLanguage(AppState.lang);
+    this.applyLanguage(AppState.lang, false); // false prevents double render
     this.bindGlobalEvents();
-    this.renderAll();
+    this.renderAll(); // Renders ONCE on boot!
+    this.initScrollSpy();
+    this.checkInitialHash();
   }
 
   // --------------------------------------------------------------------------
-  // Theme Management
+  // Theme Management (Light & Dark Dual System)
   // --------------------------------------------------------------------------
   applyTheme(theme, showToastNotification = true) {
     AppState.theme = theme;
-    localStorage.setItem('wazni_theme', theme);
+    SafeStorage.setItem('wazni_theme', theme);
     const root = document.documentElement;
 
     if (theme === 'dark') {
@@ -91,9 +129,10 @@ class PortfolioApp {
     if (themeToggleBtn) {
       themeToggleBtn.innerHTML = theme === 'dark' ? getIcon('sun') : getIcon('moon');
       themeToggleBtn.setAttribute('title', theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode');
+      themeToggleBtn.setAttribute('aria-label', theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode');
     }
 
-    if (showToastNotification) {
+    if (showToastNotification && this.data && this.data.ui && this.data.ui.toasts) {
       const msg = this.data.ui.toasts.themeChanged[theme][AppState.lang];
       this.showToast(msg);
     }
@@ -107,15 +146,15 @@ class PortfolioApp {
   // --------------------------------------------------------------------------
   // Language Management (AR / EN)
   // --------------------------------------------------------------------------
-  applyLanguage(lang) {
+  applyLanguage(lang, shouldRender = true) {
     AppState.lang = lang;
-    localStorage.setItem('wazni_lang', lang);
+    SafeStorage.setItem('wazni_lang', lang);
 
     const root = document.documentElement;
     root.lang = lang;
     root.dir = lang === 'ar' ? 'rtl' : 'ltr';
 
-    // Update lang toggle button text
+    // Update desktop language toggle button
     const langToggleBtn = document.getElementById('lang-toggle-btn');
     if (langToggleBtn) {
       langToggleBtn.innerHTML = `
@@ -125,9 +164,10 @@ class PortfolioApp {
         </span>
       `;
       langToggleBtn.setAttribute('title', lang === 'ar' ? 'Switch to English' : 'التحويل للغة العربية');
+      langToggleBtn.setAttribute('aria-label', lang === 'ar' ? 'Switch to English' : 'التحويل للغة العربية');
     }
 
-    // Update mobile lang toggle button
+    // Update mobile language toggle button
     const mobileLangToggleBtn = document.getElementById('mobile-lang-toggle-btn');
     if (mobileLangToggleBtn) {
       mobileLangToggleBtn.innerHTML = `
@@ -138,21 +178,22 @@ class PortfolioApp {
       `;
     }
 
-    this.renderAll();
-
-    // If modal is currently open, re-render its active post
-    if (AppState.currentModalPostId) {
-      this.openBlogModal(AppState.currentModalPostId);
+    if (shouldRender) {
+      this.renderAll();
+      // If modal reader is currently open, re-render active article in new language
+      if (AppState.currentModalPostId) {
+        this.openBlogModal(AppState.currentModalPostId, false);
+      }
     }
   }
 
   toggleLanguage() {
     const nextLang = AppState.lang === 'ar' ? 'en' : 'ar';
-    this.applyLanguage(nextLang);
+    this.applyLanguage(nextLang, true);
   }
 
   // --------------------------------------------------------------------------
-  // Global Event Bindings & Responsive Handlers
+  // Global Event Bindings (Pure Event Delegation Pattern)
   // --------------------------------------------------------------------------
   bindGlobalEvents() {
     // Theme toggle button
@@ -175,7 +216,7 @@ class PortfolioApp {
       });
     }
 
-    // Mobile menu toggle with smooth transitions
+    // Mobile menu toggle & close
     const mobileMenuBtn = document.getElementById('mobile-menu-btn');
     const mobileMenu = document.getElementById('mobile-menu');
     const mobileMenuClose = document.getElementById('mobile-menu-close');
@@ -193,21 +234,102 @@ class PortfolioApp {
       mobileMenuClose.addEventListener('click', () => this.closeMobileMenu());
     }
 
-    // Close mobile menu on resize past 768px (prevents scroll-lock bugs on orientation change)
+    // Delegated navigation inside mobile menu
+    const mobileNavLinks = document.getElementById('mobile-nav-links');
+    if (mobileNavLinks) {
+      mobileNavLinks.addEventListener('click', (e) => {
+        if (e.target.closest('a')) {
+          this.closeMobileMenu();
+        }
+      });
+    }
+
+    // Delegated Roadmap Filter Tabs (Zero listener churn)
+    const roadmapFilters = document.getElementById('roadmap-filters');
+    if (roadmapFilters) {
+      roadmapFilters.addEventListener('click', (e) => {
+        const btn = e.target.closest('[data-roadmap-filter]');
+        if (btn) {
+          AppState.activeRoadmapFilter = btn.getAttribute('data-roadmap-filter');
+          this.renderRoadmap();
+        }
+      });
+    }
+
+    // Delegated Blog Filter Tabs (Zero listener churn)
+    const blogFilters = document.getElementById('blog-filters');
+    if (blogFilters) {
+      blogFilters.addEventListener('click', (e) => {
+        const btn = e.target.closest('[data-blog-filter]');
+        if (btn) {
+          AppState.activeBlogFilter = btn.getAttribute('data-blog-filter');
+          this.renderBlog();
+        }
+      });
+    }
+
+    // Delegated Blog Post Cards Click (Opens Modal Reader)
+    const blogPostsGrid = document.getElementById('blog-posts-grid');
+    if (blogPostsGrid) {
+      blogPostsGrid.addEventListener('click', (e) => {
+        const card = e.target.closest('[data-post-id]');
+        if (card) {
+          const postId = card.getAttribute('data-post-id');
+          this.openBlogModal(postId);
+        }
+      });
+    }
+
+    // Delegated Contact Channels (One-click email copy & links)
+    const channelsGrid = document.getElementById('contact-channels-grid');
+    if (channelsGrid) {
+      channelsGrid.addEventListener('click', (e) => {
+        const copyEmailBtn = e.target.closest('[data-copy-email]');
+        if (copyEmailBtn) {
+          e.preventDefault();
+          e.stopPropagation();
+          const email = this.data.profile.email;
+          const msg = this.data.ui.common.emailCopied[AppState.lang];
+          this.copyTextToClipboard(email, msg);
+        }
+      });
+    }
+
+    // Delegated Hero CTAs (Copy Profile Link)
+    const heroCtaContainer = document.getElementById('hero-cta-container');
+    if (heroCtaContainer) {
+      heroCtaContainer.addEventListener('click', (e) => {
+        const copyBtn = e.target.closest('#hero-copy-btn');
+        if (copyBtn) {
+          this.copyProfileLink();
+        }
+      });
+    }
+
+    // Debounced window resize handler (closes mobile drawer when >= 768px & unlocks scroll)
+    let resizeTimer;
     window.addEventListener('resize', () => {
-      if (window.innerWidth >= 768) {
-        this.closeMobileMenu();
-      }
+      clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(() => {
+        if (window.innerWidth >= 768) {
+          this.closeMobileMenu();
+        }
+      }, 50);
     });
 
-    // Close modal on escape key
+    // Modal keyboard accessibility: Escape key to close
     document.addEventListener('keydown', (e) => {
-      if (e.key === 'Escape') {
+      if (e.key === 'Escape' && AppState.currentModalPostId) {
         this.closeBlogModal();
       }
     });
 
-    // Contact form submit listener
+    // Browser navigation back/forward support for modal deep-links
+    window.addEventListener('hashchange', () => {
+      this.checkInitialHash();
+    });
+
+    // Contact form submit listener with instant toast & smart mailto fallback
     const contactForm = document.getElementById('contact-form');
     if (contactForm) {
       contactForm.addEventListener('submit', (e) => this.handleContactSubmit(e));
@@ -225,17 +347,27 @@ class PortfolioApp {
   }
 
   // --------------------------------------------------------------------------
-  // Render Everything
+  // Fault-Isolated Render Pipeline
   // --------------------------------------------------------------------------
   renderAll() {
-    this.renderNavbar();
-    this.renderHero();
-    this.renderAbout();
-    this.renderRoadmap();
-    this.renderTechStack();
-    this.renderBlog();
-    this.renderContact();
-    this.renderFooter();
+    const renderers = [
+      ['Navbar', () => this.renderNavbar()],
+      ['Hero', () => this.renderHero()],
+      ['About', () => this.renderAbout()],
+      ['Roadmap', () => this.renderRoadmap()],
+      ['TechStack', () => this.renderTechStack()],
+      ['Blog', () => this.renderBlog()],
+      ['Contact', () => this.renderContact()],
+      ['Footer', () => this.renderFooter()]
+    ];
+
+    for (const [name, fn] of renderers) {
+      try {
+        fn();
+      } catch (err) {
+        console.error(`[PortfolioApp] Render failure in ${name}:`, err);
+      }
+    }
   }
 
   // --------------------------------------------------------------------------
@@ -251,7 +383,6 @@ class PortfolioApp {
       brandName.textContent = p.shortName[l];
     }
 
-    // Dynamic Mobile Drawer Header Brand
     const drawerBrandName = document.getElementById('mobile-drawer-brand-name');
     if (drawerBrandName) {
       drawerBrandName.textContent = p.shortName[l];
@@ -265,27 +396,23 @@ class PortfolioApp {
     const linksContainer = document.getElementById('nav-links');
     if (linksContainer) {
       linksContainer.innerHTML = `
-        <a href="#about" class="hover:text-cyan-400 transition-colors font-medium text-xs lg:text-sm text-slate-300 dark:text-slate-200">${navData.about[l]}</a>
-        <a href="#roadmap" class="hover:text-cyan-400 transition-colors font-medium text-xs lg:text-sm text-slate-300 dark:text-slate-200">${navData.roadmap[l]}</a>
-        <a href="#stack" class="hover:text-cyan-400 transition-colors font-medium text-xs lg:text-sm text-slate-300 dark:text-slate-200">${navData.stack[l]}</a>
-        <a href="#blog" class="hover:text-cyan-400 transition-colors font-medium text-xs lg:text-sm text-slate-300 dark:text-slate-200">${navData.blog[l]}</a>
-        <a href="#contact" class="hover:text-cyan-400 transition-colors font-medium text-xs lg:text-sm text-slate-300 dark:text-slate-200">${navData.contact[l]}</a>
+        <a href="#about" class="nav-link text-slate-600 hover:text-cyan-600 dark:text-slate-300 dark:hover:text-cyan-400 transition-colors font-medium text-xs lg:text-sm">${navData.about[l]}</a>
+        <a href="#roadmap" class="nav-link text-slate-600 hover:text-cyan-600 dark:text-slate-300 dark:hover:text-cyan-400 transition-colors font-medium text-xs lg:text-sm">${navData.roadmap[l]}</a>
+        <a href="#stack" class="nav-link text-slate-600 hover:text-cyan-600 dark:text-slate-300 dark:hover:text-cyan-400 transition-colors font-medium text-xs lg:text-sm">${navData.stack[l]}</a>
+        <a href="#blog" class="nav-link text-slate-600 hover:text-cyan-600 dark:text-slate-300 dark:hover:text-cyan-400 transition-colors font-medium text-xs lg:text-sm">${navData.blog[l]}</a>
+        <a href="#contact" class="nav-link text-slate-600 hover:text-cyan-600 dark:text-slate-300 dark:hover:text-cyan-400 transition-colors font-medium text-xs lg:text-sm">${navData.contact[l]}</a>
       `;
     }
 
     const mobileLinksContainer = document.getElementById('mobile-nav-links');
     if (mobileLinksContainer) {
       mobileLinksContainer.innerHTML = `
-        <a href="#about" class="mobile-nav-link text-base sm:text-lg font-medium text-slate-200 hover:text-cyan-400 py-2.5 border-b border-slate-800">${navData.about[l]}</a>
-        <a href="#roadmap" class="mobile-nav-link text-base sm:text-lg font-medium text-slate-200 hover:text-cyan-400 py-2.5 border-b border-slate-800">${navData.roadmap[l]}</a>
-        <a href="#stack" class="mobile-nav-link text-base sm:text-lg font-medium text-slate-200 hover:text-cyan-400 py-2.5 border-b border-slate-800">${navData.stack[l]}</a>
-        <a href="#blog" class="mobile-nav-link text-base sm:text-lg font-medium text-slate-200 hover:text-cyan-400 py-2.5 border-b border-slate-800">${navData.blog[l]}</a>
-        <a href="#contact" class="mobile-nav-link text-base sm:text-lg font-medium text-slate-200 hover:text-cyan-400 py-2.5 border-b border-slate-800">${navData.contact[l]}</a>
+        <a href="#about" class="mobile-nav-link text-base sm:text-lg font-medium text-slate-800 hover:text-cyan-600 dark:text-slate-200 dark:hover:text-cyan-400 py-2.5 border-b border-slate-200 dark:border-slate-800 transition-colors">${navData.about[l]}</a>
+        <a href="#roadmap" class="mobile-nav-link text-base sm:text-lg font-medium text-slate-800 hover:text-cyan-600 dark:text-slate-200 dark:hover:text-cyan-400 py-2.5 border-b border-slate-200 dark:border-slate-800 transition-colors">${navData.roadmap[l]}</a>
+        <a href="#stack" class="mobile-nav-link text-base sm:text-lg font-medium text-slate-800 hover:text-cyan-600 dark:text-slate-200 dark:hover:text-cyan-400 py-2.5 border-b border-slate-200 dark:border-slate-800 transition-colors">${navData.stack[l]}</a>
+        <a href="#blog" class="mobile-nav-link text-base sm:text-lg font-medium text-slate-800 hover:text-cyan-600 dark:text-slate-200 dark:hover:text-cyan-400 py-2.5 border-b border-slate-200 dark:border-slate-800 transition-colors">${navData.blog[l]}</a>
+        <a href="#contact" class="mobile-nav-link text-base sm:text-lg font-medium text-slate-800 hover:text-cyan-600 dark:text-slate-200 dark:hover:text-cyan-400 py-2.5 border-b border-slate-200 dark:border-slate-800 transition-colors">${navData.contact[l]}</a>
       `;
-      // Re-bind click event to newly created links
-      mobileLinksContainer.querySelectorAll('.mobile-nav-link').forEach(link => {
-        link.addEventListener('click', () => this.closeMobileMenu());
-      });
     }
   }
 
@@ -297,35 +424,27 @@ class PortfolioApp {
     const ui = this.data.ui.hero;
     const l = AppState.lang;
 
-    // Badge
+    // Status Badge
     const heroStatusBadge = document.getElementById('hero-status-badge');
     if (heroStatusBadge) {
       heroStatusBadge.innerHTML = `
-        <span class="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping"></span>
+        <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-ping"></span>
         <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 absolute start-3"></span>
-        <span class="text-xs font-semibold tracking-wide text-emerald-300 ms-3">${ui.badgeStatus[l]}</span>
+        <span class="text-xs font-semibold tracking-wide text-emerald-600 dark:text-emerald-300 ms-3">${ui.badgeStatus[l]}</span>
       `;
     }
 
-    // Name
+    // Name, Headline, Bio
     const heroName = document.getElementById('hero-name');
-    if (heroName) {
-      heroName.textContent = p.name[l];
-    }
+    if (heroName) heroName.textContent = p.name[l];
 
-    // Headline
     const heroHeadline = document.getElementById('hero-headline');
-    if (heroHeadline) {
-      heroHeadline.textContent = p.headline[l];
-    }
+    if (heroHeadline) heroHeadline.textContent = p.headline[l];
 
-    // Bio
     const heroBio = document.getElementById('hero-bio');
-    if (heroBio) {
-      heroBio.textContent = p.bio[l];
-    }
+    if (heroBio) heroBio.textContent = p.bio[l];
 
-    // CTAs (Responsive 1 primary full-width + 2 secondary side-by-side on mobile, row on desktop)
+    // Responsive CTAs (1 primary full-width + 2 secondary side-by-side on mobile, row on desktop)
     const heroCtaContainer = document.getElementById('hero-cta-container');
     if (heroCtaContainer) {
       const isRtl = l === 'ar';
@@ -336,24 +455,19 @@ class PortfolioApp {
             <span>${ui.exploreBtn[l]}</span>
             ${isRtl ? getIcon('arrow-left', 'w-4 h-4') : getIcon('arrow-right', 'w-4 h-4')}
           </a>
-          <!-- Secondary CTAs: 2 columns on mobile, inline on desktop -->
+          <!-- Secondary CTAs: 2 columns on mobile, row on desktop -->
           <div class="grid grid-cols-2 sm:flex sm:items-center gap-2 sm:gap-3 w-full sm:w-auto">
-            <a href="#blog" class="min-h-[44px] inline-flex items-center justify-center gap-1.5 sm:gap-2 px-3 sm:px-5 py-3 rounded-xl font-semibold text-xs sm:text-sm text-slate-200 bg-slate-800/80 hover:bg-slate-700/80 border border-slate-700 hover:border-cyan-500/50 transition-all text-center">
-              ${getIcon('book-open', 'w-4 h-4 text-cyan-400 shrink-0')}
+            <a href="#blog" class="min-h-[44px] inline-flex items-center justify-center gap-1.5 sm:gap-2 px-3 sm:px-5 py-3 rounded-xl font-semibold text-xs sm:text-sm text-slate-800 bg-slate-100 hover:bg-slate-200 border border-slate-300 dark:text-slate-200 dark:bg-slate-800/80 dark:hover:bg-slate-700/80 dark:border-slate-700 hover:border-cyan-500/50 transition-all text-center">
+              ${getIcon('book-open', 'w-4 h-4 text-cyan-600 dark:text-cyan-400 shrink-0')}
               <span class="truncate">${ui.readBlogBtn[l]}</span>
             </a>
-            <button id="hero-copy-btn" class="min-h-[44px] inline-flex items-center justify-center gap-1.5 sm:gap-2 px-3 sm:px-5 py-3 rounded-xl font-medium text-xs sm:text-sm text-slate-300 bg-slate-900/80 hover:bg-slate-800 border border-slate-800 hover:border-slate-600 transition-all text-center">
-              ${getIcon('share-2', 'w-4 h-4 text-emerald-400 shrink-0')}
+            <button id="hero-copy-btn" class="min-h-[44px] inline-flex items-center justify-center gap-1.5 sm:gap-2 px-3 sm:px-5 py-3 rounded-xl font-medium text-xs sm:text-sm text-slate-700 bg-slate-100 hover:bg-slate-200 border border-slate-300 dark:text-slate-300 dark:bg-slate-900/80 dark:hover:bg-slate-800 dark:border-slate-800 hover:border-slate-400 transition-all text-center">
+              ${getIcon('share-2', 'w-4 h-4 text-emerald-600 dark:text-emerald-400 shrink-0')}
               <span class="truncate">${ui.shareBtn[l]}</span>
             </button>
           </div>
         </div>
       `;
-
-      const heroCopyBtn = document.getElementById('hero-copy-btn');
-      if (heroCopyBtn) {
-        heroCopyBtn.addEventListener('click', () => this.copyProfileLink());
-      }
     }
 
     // Profile Card Floating Badge
@@ -367,21 +481,21 @@ class PortfolioApp {
       `;
     }
 
-    // Stats Grid (Equal height cards, clean 2x2 on mobile, 4-col on desktop)
+    // Stats Grid
     const statsContainer = document.getElementById('hero-stats-grid');
     if (statsContainer) {
       statsContainer.innerHTML = p.stats.map(s => `
-        <div class="glass-card p-3.5 sm:p-5 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center gap-2.5 sm:gap-4 border border-slate-800/80 hover:border-cyan-500/40 min-w-0 h-full justify-between">
+        <div class="glass-card p-3.5 sm:p-5 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center gap-2.5 sm:gap-4 border border-slate-200 dark:border-slate-800/80 hover:border-cyan-500/40 min-w-0 h-full justify-between">
           <div class="flex items-center gap-3 sm:gap-4 w-full">
-            <div class="p-2 sm:p-3 rounded-xl bg-cyan-500/10 text-cyan-400 shrink-0">
+            <div class="p-2 sm:p-3 rounded-xl bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 shrink-0">
               ${getIcon(s.icon, 'w-5 h-5 sm:w-6 sm:h-6')}
             </div>
             <div class="min-w-0 flex-1">
               <div class="flex items-baseline gap-1">
-                <span class="text-lg sm:text-2xl font-black text-white font-mono tracking-tight">${s.number}</span>
-                <span class="text-[11px] sm:text-xs font-semibold text-cyan-400">${s.unit[l]}</span>
+                <span class="text-lg sm:text-2xl font-black text-slate-900 dark:text-white font-mono tracking-tight">${s.number}</span>
+                <span class="text-[11px] sm:text-xs font-semibold text-cyan-600 dark:text-cyan-400">${s.unit[l]}</span>
               </div>
-              <p class="text-[11px] sm:text-sm text-slate-400 mt-0.5 leading-snug line-clamp-2">${s.label[l]}</p>
+              <p class="text-[11px] sm:text-sm text-slate-600 dark:text-slate-400 mt-0.5 leading-snug line-clamp-2">${s.label[l]}</p>
             </div>
           </div>
         </div>
@@ -397,24 +511,18 @@ class PortfolioApp {
     const l = AppState.lang;
 
     const aboutTitle = document.getElementById('about-section-title');
-    if (aboutTitle) {
-      aboutTitle.textContent = this.data.ui.sections.aboutTitle[l];
-    }
+    if (aboutTitle) aboutTitle.textContent = this.data.ui.sections.aboutTitle[l];
 
     const aboutSubtitle = document.getElementById('about-section-subtitle');
-    if (aboutSubtitle) {
-      aboutSubtitle.textContent = this.data.ui.sections.aboutSubtitle[l];
-    }
+    if (aboutSubtitle) aboutSubtitle.textContent = this.data.ui.sections.aboutSubtitle[l];
 
     const philosophyTitle = document.getElementById('about-philosophy-title');
-    if (philosophyTitle) {
-      philosophyTitle.textContent = am.philosophy[l];
-    }
+    if (philosophyTitle) philosophyTitle.textContent = am.philosophy[l];
 
     const paragraphsContainer = document.getElementById('about-paragraphs');
     if (paragraphsContainer) {
       paragraphsContainer.innerHTML = am.paragraphs.map(p => `
-        <p class="text-sm sm:text-base lg:text-lg text-slate-300 leading-relaxed">${p[l]}</p>
+        <p class="text-sm sm:text-base lg:text-lg text-slate-700 dark:text-slate-300 leading-relaxed">${p[l]}</p>
       `).join('');
     }
 
@@ -422,17 +530,17 @@ class PortfolioApp {
     const touchTypingContainer = document.getElementById('touch-typing-card');
     if (touchTypingContainer) {
       touchTypingContainer.innerHTML = `
-        <div class="glass-card p-5 sm:p-6 rounded-2xl border-l-4 border-l-cyan-400 relative overflow-hidden">
+        <div class="glass-card p-5 sm:p-6 rounded-2xl border-l-4 border-l-cyan-500 relative overflow-hidden">
           <div class="flex items-start gap-3.5 sm:gap-4">
-            <div class="p-2.5 sm:p-3.5 rounded-xl bg-cyan-500/15 text-cyan-400 shrink-0">
+            <div class="p-2.5 sm:p-3.5 rounded-xl bg-cyan-500/15 text-cyan-600 dark:text-cyan-400 shrink-0">
               ${getIcon('keyboard', 'w-6 h-6 sm:w-7 sm:h-7')}
             </div>
             <div class="min-w-0 flex-1">
               <div class="flex flex-wrap items-center gap-2 mb-1">
-                <h4 class="text-base sm:text-lg font-bold text-white">${am.touchTyping.title[l]}</h4>
-                <span class="badge-code px-2 py-0.5 text-xs font-mono font-bold bg-cyan-500/20 text-cyan-300 rounded border border-cyan-500/30">60+ WPM</span>
+                <h4 class="text-base sm:text-lg font-bold text-slate-900 dark:text-white">${am.touchTyping.title[l]}</h4>
+                <span class="badge-code px-2 py-0.5 text-xs font-mono font-bold bg-cyan-500/20 text-cyan-600 dark:text-cyan-300 rounded border border-cyan-500/30">60+ WPM</span>
               </div>
-              <p class="text-xs sm:text-sm text-slate-300 leading-relaxed">${am.touchTyping.desc[l]}</p>
+              <p class="text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed">${am.touchTyping.desc[l]}</p>
             </div>
           </div>
         </div>
@@ -444,49 +552,56 @@ class PortfolioApp {
     if (pillarsContainer && am.disciplinePillars) {
       const dp = am.disciplinePillars;
       pillarsContainer.innerHTML = `
-        <h4 class="text-base sm:text-lg font-bold text-white mb-4 flex items-center gap-2 text-cyan-400">
-          <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
-          <span>${dp.title[l]}</span>
-        </h4>
-        <ul class="space-y-3.5 text-xs sm:text-sm text-slate-300">
-          ${dp.items.map(item => `
-            <li class="flex items-start gap-3">
-              <span class="w-6 h-6 rounded-lg bg-cyan-500/20 text-cyan-300 flex items-center justify-center font-mono font-bold text-xs shrink-0 mt-0.5">${item.num}</span>
-              <div>
-                <strong class="text-white block font-semibold mb-0.5">${item.title[l]}</strong>
-                <span>${item.desc[l]}</span>
+        <div>
+          <h4 class="text-base sm:text-lg font-bold text-slate-900 dark:text-white mb-4 flex items-center gap-2 text-cyan-600 dark:text-cyan-400">
+            <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+            <span>${dp.title[l]}</span>
+          </h4>
+          <div class="space-y-3.5">
+            ${dp.items.map(item => `
+              <div class="flex items-start gap-3 p-3 rounded-xl bg-slate-100 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800">
+                <div class="p-2 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5">
+                  ${getIcon(item.icon, 'w-4 h-4')}
+                </div>
+                <div class="min-w-0">
+                  <div class="text-xs sm:text-sm font-bold text-slate-900 dark:text-white">${item.label[l]}</div>
+                  <div class="text-[11px] sm:text-xs text-slate-600 dark:text-slate-400 mt-0.5">${item.desc[l]}</div>
+                </div>
               </div>
-            </li>
-          `).join('')}
-        </ul>
+            `).join('')}
+          </div>
+        </div>
+        <div class="mt-4 pt-3.5 border-t border-slate-200 dark:border-slate-800/80 flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 font-mono">
+          <span>DAILY FOCUS TARGET</span>
+          <span class="text-cyan-600 dark:text-cyan-400 font-bold">8-12 HRS / DAY</span>
+        </div>
       `;
     }
 
-    // Books Shelf (Equal heights)
+    // Books Mini-Shelf
     const booksTitle = document.getElementById('books-shelf-title');
     if (booksTitle) {
-      booksTitle.textContent = this.data.ui.sections.booksTitle[l];
+      booksTitle.querySelector('span:last-child').textContent = this.data.ui.sections.booksTitle[l];
     }
 
     const booksContainer = document.getElementById('books-shelf-grid');
-    if (booksContainer) {
+    if (booksContainer && am.booksShelf) {
       booksContainer.innerHTML = am.booksShelf.map(b => `
-        <div class="book-card glass-card p-5 sm:p-6 rounded-2xl flex flex-col justify-between h-full border border-slate-800 hover:border-emerald-500/50">
+        <div class="book-card glass-card p-5 rounded-2xl border border-slate-200 dark:border-slate-800/80 hover:border-cyan-500/50 flex flex-col justify-between h-full">
           <div>
-            <div class="flex items-center justify-between gap-2 mb-3">
-              <span class="text-xs font-semibold px-2.5 py-1 rounded-full bg-emerald-500/15 text-emerald-300 border border-emerald-500/30">
-                ${b.tag[l]}
+            <div class="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 mb-2">
+              <span class="px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-cyan-600 dark:text-cyan-300 font-mono font-bold text-[11px] border border-slate-200 dark:border-slate-700">
+                ${b.type[l]}
               </span>
-              <div class="text-emerald-400">
-                ${getIcon(b.icon, 'w-5 h-5')}
-              </div>
+              <span class="text-emerald-600 dark:text-emerald-400 font-semibold">${b.status[l]}</span>
             </div>
-            <h4 class="text-base sm:text-lg font-bold text-white mb-1 leading-snug">${b.title[l]}</h4>
-            <p class="text-xs text-slate-400 mb-3">${b.author}</p>
-            <p class="text-xs sm:text-sm text-slate-300 leading-relaxed mb-4">${b.desc[l]}</p>
+            <h4 class="text-base font-bold text-slate-900 dark:text-white mt-2 mb-1">${b.title[l]}</h4>
+            <p class="text-xs text-cyan-600 dark:text-cyan-400/90 font-medium mb-3">${b.author}</p>
+            <p class="text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed">${b.impact[l]}</p>
           </div>
-          <div class="pt-3 border-t border-slate-800/80 text-xs font-medium text-emerald-400/90 italic">
-            ${b.impact[l]}
+          <div class="mt-4 pt-3 border-t border-slate-200 dark:border-slate-800/80 flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400">
+            ${getIcon('sparkles', 'w-3.5 h-3.5 text-amber-500 shrink-0')}
+            <span class="truncate">${b.keyTakeaway[l]}</span>
           </div>
         </div>
       `).join('');
@@ -494,116 +609,95 @@ class PortfolioApp {
   }
 
   // --------------------------------------------------------------------------
-  // Academic Roadmap & Courses Section
+  // Roadmap & Courses Section
   // --------------------------------------------------------------------------
   renderRoadmap() {
-    const rm = this.data.roadmap;
+    const r = this.data.roadmap;
     const l = AppState.lang;
 
     const roadmapTitle = document.getElementById('roadmap-section-title');
-    if (roadmapTitle) {
-      roadmapTitle.textContent = this.data.ui.sections.roadmapTitle[l];
-    }
+    if (roadmapTitle) roadmapTitle.textContent = this.data.ui.sections.roadmapTitle[l];
 
     const roadmapSubtitle = document.getElementById('roadmap-section-subtitle');
-    if (roadmapSubtitle) {
-      roadmapSubtitle.textContent = this.data.ui.sections.roadmapSubtitle[l];
-    }
+    if (roadmapSubtitle) roadmapSubtitle.textContent = this.data.ui.sections.roadmapSubtitle[l];
 
-    // Filter Buttons (with shrink-0 for smooth mobile horizontal scroll)
-    const filterContainer = document.getElementById('roadmap-filters');
-    if (filterContainer) {
-      filterContainer.innerHTML = rm.categories.map(cat => {
-        const isActive = cat.id === AppState.activeRoadmapFilter;
+    // Filter Buttons (Horizontal swipe strip on mobile, flex-wrap on desktop)
+    const filtersContainer = document.getElementById('roadmap-filters');
+    if (filtersContainer) {
+      filtersContainer.innerHTML = r.filters.map(f => {
+        const isActive = AppState.activeRoadmapFilter === f.id;
+        const activeClasses = 'bg-gradient-to-r from-cyan-500 to-blue-600 text-white font-bold shadow-md shadow-cyan-500/25 border-cyan-400';
+        const inactiveClasses = 'bg-slate-100 hover:bg-slate-200 text-slate-700 border-slate-300 dark:bg-slate-800/80 dark:hover:bg-slate-700/80 dark:text-slate-300 dark:border-slate-700 hover:border-cyan-500/50';
+
         return `
-          <button data-roadmap-filter="${cat.id}" class="shrink-0 whitespace-nowrap min-h-[40px] px-3.5 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all ${
-            isActive
-              ? 'bg-gradient-to-r from-cyan-500 to-blue-600 text-white shadow-lg shadow-cyan-500/20'
-              : 'bg-slate-800/80 text-slate-300 hover:bg-slate-800 hover:text-white border border-slate-700/60'
-          }">
-            ${cat.label[l]}
+          <button data-roadmap-filter="${f.id}" class="min-h-[44px] px-4 py-2.5 rounded-xl text-xs sm:text-sm transition-all border whitespace-nowrap shrink-0 ${isActive ? activeClasses : inactiveClasses}">
+            ${f.label[l]}
           </button>
         `;
       }).join('');
-
-      filterContainer.querySelectorAll('[data-roadmap-filter]').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-          const filterId = e.currentTarget.getAttribute('data-roadmap-filter');
-          AppState.activeRoadmapFilter = filterId;
-          this.renderRoadmap();
-        });
-      });
     }
 
-    // Courses List (Equal height cards)
+    // Courses Grid (Equal heights & consistent alignment)
     const coursesContainer = document.getElementById('courses-timeline-grid');
     if (coursesContainer) {
-      const filteredCourses = rm.items.filter(item => {
+      const filteredCourses = r.courses.filter(c => {
         if (AppState.activeRoadmapFilter === 'all') return true;
-        return item.status === AppState.activeRoadmapFilter;
+        return c.statusType === AppState.activeRoadmapFilter;
       });
 
       const common = this.data.ui.common;
 
       coursesContainer.innerHTML = filteredCourses.map(c => {
-        const isCurrent = c.status === 'current';
-        const badgeBg = isCurrent ? 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30' : 'bg-purple-500/15 text-purple-400 border-purple-500/30';
-        const barColor = isCurrent ? 'from-cyan-500 to-emerald-500' : 'from-purple-500 to-indigo-500';
+        const isCurrent = c.statusType === 'current';
+        const statusBadge = isCurrent
+          ? `<span class="px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-500/15 text-emerald-600 dark:text-emerald-300 border border-emerald-500/30 flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>${c.statusLabel[l]}</span>`
+          : `<span class="px-2.5 py-1 rounded-full text-xs font-bold bg-cyan-500/15 text-cyan-600 dark:text-cyan-300 border border-cyan-500/30 flex items-center gap-1.5">${getIcon('target', 'w-3.5 h-3.5')}${c.statusLabel[l]}</span>`;
 
         return `
-          <div class="glass-card p-5 sm:p-7 rounded-2xl border border-slate-800/80 hover:border-cyan-500/40 relative overflow-hidden flex flex-col justify-between h-full">
+          <div class="glass-card p-5 sm:p-7 rounded-2xl border border-slate-200 dark:border-slate-800/80 hover:border-cyan-500/40 flex flex-col justify-between h-full group">
             <div>
-              <div class="flex flex-wrap items-center justify-between gap-2.5 mb-4">
-                <span class="text-xs font-bold px-3 py-1 rounded-full border ${badgeBg} flex items-center gap-1.5">
-                  <span class="w-1.5 h-1.5 rounded-full ${isCurrent ? 'bg-emerald-400 animate-pulse' : 'bg-purple-400'}"></span>
-                  ${c.statusBadge[l]}
+              <div class="flex items-center justify-between gap-3 mb-3 flex-wrap">
+                <span class="px-2.5 py-0.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-mono text-xs font-bold border border-slate-200 dark:border-slate-700">
+                  ${c.category[l]}
                 </span>
-                <span class="text-xs text-slate-400 font-medium">${c.institution[l]}</span>
+                ${statusBadge}
               </div>
 
-              <div class="flex items-start gap-3 sm:gap-3.5 mb-4">
-                <div class="p-2.5 sm:p-3 rounded-xl bg-slate-800/90 text-cyan-400 border border-slate-700/70 shrink-0">
-                  ${getIcon(c.icon, 'w-5 h-5 sm:w-6 sm:h-6')}
-                </div>
-                <div>
-                  <h4 class="text-base sm:text-lg lg:text-xl font-bold text-white leading-snug">${c.title[l]}</h4>
-                </div>
-              </div>
+              <h4 class="text-base sm:text-lg font-bold text-slate-900 dark:text-white group-hover:text-cyan-600 dark:group-hover:text-cyan-400 transition-colors mb-2">
+                ${c.title[l]}
+              </h4>
 
-              <!-- Topics -->
+              <p class="text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed mb-4">
+                ${c.description[l]}
+              </p>
+
+              <!-- Concepts List -->
               <div class="mb-5">
-                <h5 class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2.5">${common.topicsCovered[l]}</h5>
-                <ul class="space-y-1.5">
-                  ${c.topics.map(t => `
-                    <li class="flex items-start gap-2 text-xs sm:text-sm text-slate-300">
-                      <span class="text-cyan-400 mt-0.5 shrink-0">${getIcon('check-circle-2', 'w-3.5 h-3.5')}</span>
-                      <span>${t[l]}</span>
-                    </li>
+                <span class="text-xs font-bold text-slate-500 dark:text-slate-400 block mb-2">${common.topicsCovered[l]}</span>
+                <div class="flex flex-wrap gap-1.5">
+                  ${c.concepts.map(con => `
+                    <span class="px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-900/80 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-800 text-[11px]">
+                      ${con[l]}
+                    </span>
                   `).join('')}
-                </ul>
-              </div>
-            </div>
-
-            <!-- Bottom Tools & Progress (Aligned across all cards) -->
-            <div class="pt-4 border-t border-slate-800/80">
-              <div class="flex flex-wrap items-center gap-1.5 mb-3.5">
-                ${c.tools.map(tool => `
-                  <span class="badge-code px-2 py-0.5 text-xs font-mono font-medium bg-slate-900/80 text-cyan-300 rounded border border-slate-700/70">
-                    ${tool}
-                  </span>
-                `).join('')}
-              </div>
-
-              <div>
-                <div class="flex items-center justify-between text-xs text-slate-400 mb-1.5">
-                  <span>${common.progressLabel[l]}</span>
-                  <span class="font-mono font-bold text-cyan-400">${c.progress}%</span>
-                </div>
-                <div class="w-full h-2 rounded-full bg-slate-800 overflow-hidden">
-                  <div class="progress-bar-fill h-full rounded-full bg-gradient-to-r ${barColor}" style="width: ${c.progress}%;"></div>
                 </div>
               </div>
             </div>
+
+            <!-- Card Footer: Tools & Progress -->
+            <div class="pt-4 border-t border-slate-200 dark:border-slate-800/80 space-y-3">
+              <div class="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
+                <span class="flex items-center gap-1">
+                  ${getIcon('terminal', 'w-3.5 h-3.5')}
+                  <span>${c.tools.join(', ')}</span>
+                </span>
+                <span class="font-mono font-bold text-slate-900 dark:text-white">${c.progress}%</span>
+              </div>
+              <div class="w-full h-1.5 bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden">
+                <div class="progress-bar-fill h-full bg-gradient-to-r from-cyan-500 to-emerald-400 rounded-full" style="width: ${c.progress}%"></div>
+              </div>
+            </div>
+
           </div>
         `;
       }).join('');
@@ -611,49 +705,47 @@ class PortfolioApp {
   }
 
   // --------------------------------------------------------------------------
-  // Daily Tech Stack & Productivity Arsenal
+  // Tech Stack Section
   // --------------------------------------------------------------------------
   renderTechStack() {
-    const ts = this.data.techStack;
+    const s = this.data.techStack;
     const l = AppState.lang;
 
     const stackTitle = document.getElementById('stack-section-title');
-    if (stackTitle) {
-      stackTitle.textContent = this.data.ui.sections.stackTitle[l];
-    }
+    if (stackTitle) stackTitle.textContent = this.data.ui.sections.stackTitle[l];
 
     const stackSubtitle = document.getElementById('stack-section-subtitle');
-    if (stackSubtitle) {
-      stackSubtitle.textContent = this.data.ui.sections.stackSubtitle[l];
-    }
+    if (stackSubtitle) stackSubtitle.textContent = this.data.ui.sections.stackSubtitle[l];
 
-    const stackContainer = document.getElementById('stack-groups-container');
-    if (stackContainer) {
-      stackContainer.innerHTML = ts.categories.map(cat => `
-        <div class="mb-10 sm:mb-12 last:mb-0">
-          <div class="mb-5 sm:mb-6">
-            <h4 class="text-lg sm:text-xl lg:text-2xl font-bold text-white flex items-center gap-2.5">
-              <span class="w-2.5 h-5 sm:h-6 rounded-full bg-cyan-400"></span>
-              <span>${cat.title[l]}</span>
-            </h4>
-            <p class="text-xs sm:text-sm text-slate-400 mt-1">${cat.desc[l]}</p>
+    const groupsContainer = document.getElementById('stack-groups-container');
+    if (groupsContainer) {
+      groupsContainer.innerHTML = s.groups.map(group => `
+        <div class="mb-10 sm:mb-14 last:mb-0">
+          <div class="flex items-center gap-3 mb-6">
+            <span class="w-2.5 h-6 rounded-full bg-gradient-to-b from-cyan-500 to-emerald-400 shrink-0"></span>
+            <div>
+              <h3 class="text-lg sm:text-xl font-bold text-slate-900 dark:text-white">${group.title[l]}</h3>
+              <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400">${group.description[l]}</p>
+            </div>
           </div>
 
-          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5 sm:gap-5">
-            ${cat.tools.map(tool => `
-              <div class="glass-card p-4 sm:p-5 rounded-2xl border border-slate-800/80 hover:border-cyan-500/50 flex flex-col justify-between h-full group">
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
+            ${group.tools.map(tool => `
+              <div class="glass-card p-4 sm:p-5 rounded-2xl border border-slate-200 dark:border-slate-800/80 hover:border-cyan-500/50 flex flex-col justify-between h-full group">
                 <div>
                   <div class="flex items-center justify-between mb-3">
-                    <div class="p-2.5 sm:p-3 rounded-xl bg-cyan-500/10 text-cyan-400 group-hover:bg-cyan-500 group-hover:text-slate-950 transition-colors shrink-0">
+                    <div class="p-2 sm:p-2.5 rounded-xl bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 group-hover:scale-110 transition-transform shrink-0">
                       ${getIcon(tool.icon, 'w-5 h-5 sm:w-6 sm:h-6')}
                     </div>
-                    <span class="badge-code text-xs px-2 py-0.5 rounded font-mono font-bold bg-slate-900/90 text-cyan-300 border border-slate-800">
-                      ${tool.badge}
+                    <span class="text-[11px] font-mono font-semibold px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-900 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-800">
+                      ${tool.level[l]}
                     </span>
                   </div>
-                  <h5 class="text-sm sm:text-base font-bold text-white mb-0.5">${tool.name}</h5>
-                  <p class="text-xs font-semibold text-cyan-400/90 mb-2">${tool.category[l]}</p>
-                  <p class="text-xs sm:text-sm text-slate-300 leading-relaxed">${tool.desc[l]}</p>
+                  <h4 class="text-base font-bold text-slate-900 dark:text-white group-hover:text-cyan-600 dark:group-hover:text-cyan-400 transition-colors mb-1">${tool.name}</h4>
+                  <p class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed mb-3">${tool.role[l]}</p>
+                </div>
+                <div class="pt-3 border-t border-slate-200 dark:border-slate-800/80 text-[11px] text-cyan-600 dark:text-cyan-400/90 font-mono">
+                  ${tool.details[l]}
                 </div>
               </div>
             `).join('')}
@@ -664,48 +756,35 @@ class PortfolioApp {
   }
 
   // --------------------------------------------------------------------------
-  // Blog & Study Notes Section
+  // Blog Section & Article Grid
   // --------------------------------------------------------------------------
   renderBlog() {
     const b = this.data.blog;
     const l = AppState.lang;
 
     const blogTitle = document.getElementById('blog-section-title');
-    if (blogTitle) {
-      blogTitle.textContent = this.data.ui.sections.blogTitle[l];
-    }
+    if (blogTitle) blogTitle.textContent = this.data.ui.sections.blogTitle[l];
 
     const blogSubtitle = document.getElementById('blog-section-subtitle');
-    if (blogSubtitle) {
-      blogSubtitle.textContent = this.data.ui.sections.blogSubtitle[l];
-    }
+    if (blogSubtitle) blogSubtitle.textContent = this.data.ui.sections.blogSubtitle[l];
 
-    // Category Filter Buttons (with shrink-0 for horizontal scrolling)
-    const blogFilters = document.getElementById('blog-filters');
-    if (blogFilters) {
-      blogFilters.innerHTML = b.categories.map(cat => {
-        const isActive = cat.id === AppState.activeBlogFilter;
+    // Filter Buttons
+    const filtersContainer = document.getElementById('blog-filters');
+    if (filtersContainer) {
+      filtersContainer.innerHTML = b.filters.map(f => {
+        const isActive = AppState.activeBlogFilter === f.id;
+        const activeClasses = 'bg-gradient-to-r from-cyan-500 to-blue-600 text-white font-bold shadow-md shadow-cyan-500/25 border-cyan-400';
+        const inactiveClasses = 'bg-slate-100 hover:bg-slate-200 text-slate-700 border-slate-300 dark:bg-slate-800/80 dark:hover:bg-slate-700/80 dark:text-slate-300 dark:border-slate-700 hover:border-cyan-500/50';
+
         return `
-          <button data-blog-filter="${cat.id}" class="shrink-0 whitespace-nowrap min-h-[40px] px-3.5 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all ${
-            isActive
-              ? 'bg-gradient-to-r from-cyan-500 to-blue-600 text-white shadow-lg shadow-cyan-500/20'
-              : 'bg-slate-800/80 text-slate-300 hover:bg-slate-800 hover:text-white border border-slate-700/60'
-          }">
-            ${cat.label[l]}
+          <button data-blog-filter="${f.id}" class="min-h-[44px] px-4 py-2.5 rounded-xl text-xs sm:text-sm transition-all border whitespace-nowrap shrink-0 ${isActive ? activeClasses : inactiveClasses}">
+            ${f.label[l]}
           </button>
         `;
       }).join('');
-
-      blogFilters.querySelectorAll('[data-blog-filter]').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-          const filterId = e.currentTarget.getAttribute('data-blog-filter');
-          AppState.activeBlogFilter = filterId;
-          this.renderBlog();
-        });
-      });
     }
 
-    // Articles Grid (Equal heights, clean alignment)
+    // Articles Grid
     const postsContainer = document.getElementById('blog-posts-grid');
     if (postsContainer) {
       const filteredPosts = b.posts.filter(p => {
@@ -716,32 +795,32 @@ class PortfolioApp {
       const common = this.data.ui.common;
 
       postsContainer.innerHTML = filteredPosts.map(post => `
-        <article class="glass-card p-5 sm:p-7 rounded-2xl border border-slate-800/80 hover:border-cyan-500/50 flex flex-col justify-between h-full group cursor-pointer" data-post-id="${post.id}">
+        <article class="glass-card p-5 sm:p-7 rounded-2xl border border-slate-200 dark:border-slate-800/80 hover:border-cyan-500/50 flex flex-col justify-between h-full group cursor-pointer" data-post-id="${post.id}" tabindex="0" role="button" aria-label="${post.title[l]}">
           <div>
-            <div class="flex items-center justify-between text-xs text-slate-400 mb-3 flex-wrap gap-2">
-              <span class="px-2.5 py-1 rounded-full bg-cyan-500/15 text-cyan-300 font-bold border border-cyan-500/30">
+            <div class="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 mb-3 flex-wrap gap-2">
+              <span class="px-2.5 py-1 rounded-full bg-cyan-500/15 text-cyan-700 dark:text-cyan-300 font-bold border border-cyan-500/30">
                 ${post.categoryLabel[l]}
               </span>
               <div class="flex items-center gap-2.5">
                 <span class="font-mono">${post.date}</span>
                 <span>•</span>
-                <span class="flex items-center gap-1 text-slate-400">
+                <span class="flex items-center gap-1 text-slate-500 dark:text-slate-400">
                   ${getIcon('clock', 'w-3.5 h-3.5')}
                   ${post.readTime[l]}
                 </span>
               </div>
             </div>
 
-            <h4 class="text-base sm:text-lg lg:text-xl font-bold text-white group-hover:text-cyan-400 transition-colors mb-2.5 leading-snug">
+            <h4 class="text-base sm:text-lg lg:text-xl font-bold text-slate-900 dark:text-white group-hover:text-cyan-600 dark:group-hover:text-cyan-400 transition-colors mb-2.5 leading-snug">
               ${post.title[l]}
             </h4>
 
-            <p class="text-xs sm:text-sm text-slate-300 leading-relaxed mb-5 line-clamp-3">
+            <p class="text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed mb-5 line-clamp-3">
               ${post.excerpt[l]}
             </p>
           </div>
 
-          <div class="pt-3.5 border-t border-slate-800/80 flex items-center justify-between text-cyan-400 font-semibold text-xs sm:text-sm">
+          <div class="pt-3.5 border-t border-slate-200 dark:border-slate-800/80 flex items-center justify-between text-cyan-600 dark:text-cyan-400 font-semibold text-xs sm:text-sm">
             <span>${common.readArticle[l]}</span>
             <span class="transform group-hover:translate-x-1 rtl:group-hover:-translate-x-1 transition-transform">
               ${AppState.lang === 'ar' ? getIcon('arrow-left', 'w-4 h-4') : getIcon('arrow-right', 'w-4 h-4')}
@@ -749,24 +828,17 @@ class PortfolioApp {
           </div>
         </article>
       `).join('');
-
-      // Add click listener to open modal reader
-      postsContainer.querySelectorAll('[data-post-id]').forEach(card => {
-        card.addEventListener('click', () => {
-          const postId = card.getAttribute('data-post-id');
-          this.openBlogModal(postId);
-        });
-      });
     }
   }
 
   // --------------------------------------------------------------------------
-  // Mobile-Optimized Blog Reader Modal (Sticky Header & Responsive Code)
+  // Accessible Blog Modal Reader & URL Deep-Linking
   // --------------------------------------------------------------------------
-  openBlogModal(postId) {
+  openBlogModal(postId, syncHash = true) {
     const post = this.data.blog.posts.find(p => p.id === postId);
     if (!post) return;
 
+    this.lastFocusedElement = document.activeElement;
     AppState.currentModalPostId = postId;
     const l = AppState.lang;
     const modal = document.getElementById('blog-modal');
@@ -775,20 +847,29 @@ class PortfolioApp {
 
     if (!modal || !modalContent) return;
 
+    // URL Hash Synchronization
+    if (syncHash && window.location.hash !== `#post=${postId}`) {
+      try {
+        history.pushState(null, '', `#post=${encodeURIComponent(postId)}`);
+      } catch (e) {
+        window.location.hash = `post=${encodeURIComponent(postId)}`;
+      }
+    }
+
     modalContent.innerHTML = `
       <!-- Sticky Modal Header (Always accessible during reading) -->
-      <div class="sticky top-0 z-20 backdrop-blur-md bg-slate-900/95 dark:bg-slate-900/95 border-b border-slate-800/80 px-4 sm:px-8 py-3.5 flex items-center justify-between shrink-0">
+      <div class="sticky top-0 z-20 backdrop-blur-md bg-white/95 dark:bg-slate-900/95 border-b border-slate-200 dark:border-slate-800/80 px-4 sm:px-8 py-3.5 flex items-center justify-between shrink-0">
         <div class="flex items-center gap-2 sm:gap-3 flex-wrap">
-          <span class="px-2.5 py-0.5 sm:py-1 rounded-full text-[11px] sm:text-xs font-bold bg-cyan-500/20 text-cyan-300 border border-cyan-500/30">
+          <span class="px-2.5 py-0.5 sm:py-1 rounded-full text-[11px] sm:text-xs font-bold bg-cyan-500/20 text-cyan-700 dark:text-cyan-300 border border-cyan-500/30">
             ${post.categoryLabel[l]}
           </span>
-          <span class="text-xs text-slate-400 font-mono">${post.date}</span>
-          <span class="text-xs text-slate-400 flex items-center gap-1">
+          <span class="text-xs text-slate-500 dark:text-slate-400 font-mono">${post.date}</span>
+          <span class="text-xs text-slate-500 dark:text-slate-400 flex items-center gap-1">
             ${getIcon('clock', 'w-3.5 h-3.5')}
             ${post.readTime[l]}
           </span>
         </div>
-        <button id="modal-close-btn" class="min-w-[40px] min-h-[40px] p-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition-colors flex items-center justify-center shrink-0" title="${common.close[l]}">
+        <button id="modal-close-btn" class="min-w-[44px] min-h-[44px] p-2 rounded-xl text-slate-600 hover:text-slate-900 hover:bg-slate-100 dark:text-slate-400 dark:hover:text-white dark:hover:bg-slate-800 transition-colors flex items-center justify-center shrink-0" title="${common.close[l]}" aria-label="${common.close[l]}">
           ${getIcon('x', 'w-5 h-5 sm:w-6 sm:h-6')}
         </button>
       </div>
@@ -796,32 +877,32 @@ class PortfolioApp {
       <!-- Scrollable Article Content -->
       <div class="overflow-y-auto px-4 sm:px-8 py-5 sm:py-6 flex-1 overscroll-contain">
         <!-- Article Title -->
-        <h2 class="text-xl sm:text-2xl lg:text-3xl font-black text-white leading-tight mb-4">
+        <h2 id="modal-post-title" class="text-xl sm:text-2xl lg:text-3xl font-black text-slate-900 dark:text-white leading-tight mb-4">
           ${post.title[l]}
         </h2>
 
         <!-- Author Card inside Modal -->
-        <div class="flex items-center gap-3 p-3 rounded-xl bg-slate-900/60 border border-slate-800 mb-6">
-          <img src="${this.data.profile.avatar}" alt="Ibrahim Wazni" class="w-10 h-10 sm:w-11 sm:h-11 rounded-full object-cover border border-cyan-500/40 shrink-0" onerror="this.src='https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80'">
+        <div class="flex items-center gap-3 p-3 rounded-xl bg-slate-100 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 mb-6">
+          <img src="${this.data.profile.avatar}" alt="Ibrahim Wazni" class="w-10 h-10 sm:w-11 sm:h-11 rounded-full object-cover border border-cyan-500/40 shrink-0" width="44" height="44" onerror="this.src='https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=200&q=80'">
           <div class="min-w-0">
-            <h5 class="text-xs sm:text-sm font-bold text-white truncate">${this.data.profile.name[l]}</h5>
-            <p class="text-[11px] sm:text-xs text-slate-400 truncate">${this.data.profile.university[l]}</p>
+            <h5 class="text-xs sm:text-sm font-bold text-slate-900 dark:text-white truncate">${this.data.profile.name[l]}</h5>
+            <p class="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400 truncate">${this.data.profile.university[l]}</p>
           </div>
         </div>
 
-        <!-- Formatted Article Body -->
-        <div class="article-body text-slate-200">
+        <!-- Formatted Article Body with Rich Typography & Code Blocks -->
+        <div class="article-body">
           ${post.content[l]}
         </div>
       </div>
 
       <!-- Docked Modal Footer -->
-      <div class="px-4 sm:px-8 py-3.5 border-t border-slate-800/80 backdrop-blur-md bg-slate-900/95 flex items-center justify-between gap-3 shrink-0">
-        <button id="modal-share-btn" class="min-h-[40px] inline-flex items-center gap-2 px-3.5 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold bg-cyan-500/15 text-cyan-300 hover:bg-cyan-500/25 border border-cyan-500/30 transition-all">
+      <div class="px-4 sm:px-8 py-3.5 border-t border-slate-200 dark:border-slate-800/80 backdrop-blur-md bg-white/95 dark:bg-slate-900/95 flex items-center justify-between gap-3 shrink-0">
+        <button id="modal-share-btn" class="min-h-[44px] inline-flex items-center gap-2 px-3.5 sm:px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold bg-cyan-500/15 text-cyan-700 dark:text-cyan-300 hover:bg-cyan-500/25 border border-cyan-500/30 transition-all">
           ${getIcon('share-2', 'w-4 h-4')}
           <span>${common.shareArticle[l]}</span>
         </button>
-        <button id="modal-bottom-close-btn" class="min-h-[40px] px-4 sm:px-5 py-2 rounded-xl text-xs sm:text-sm font-semibold bg-slate-800 hover:bg-slate-700 text-slate-200 transition-all">
+        <button id="modal-bottom-close-btn" class="min-h-[44px] px-4 sm:px-5 py-2 rounded-xl text-xs sm:text-sm font-semibold bg-slate-100 hover:bg-slate-200 text-slate-800 dark:bg-slate-800 dark:hover:bg-slate-700 dark:text-slate-200 transition-all">
           ${common.close[l]}
         </button>
       </div>
@@ -841,6 +922,12 @@ class PortfolioApp {
         this.closeBlogModal();
       }
     };
+
+    // Accessibility: Focus the close button inside modal
+    setTimeout(() => {
+      const closeBtn = document.getElementById('modal-close-btn');
+      if (closeBtn) closeBtn.focus();
+    }, 60);
   }
 
   closeBlogModal() {
@@ -849,67 +936,102 @@ class PortfolioApp {
       modal.classList.add('hidden');
       document.body.classList.remove('modal-open');
       AppState.currentModalPostId = null;
+
+      // Clean URL hash without scrolling
+      if (window.location.hash.startsWith('#post=')) {
+        try {
+          history.pushState(null, '', window.location.pathname + window.location.search);
+        } catch (e) {
+          window.location.hash = '';
+        }
+      }
+
+      // Restore focus to triggering card or button
+      if (this.lastFocusedElement && typeof this.lastFocusedElement.focus === 'function') {
+        this.lastFocusedElement.focus();
+      }
+    }
+  }
+
+  checkInitialHash() {
+    const hash = window.location.hash;
+    if (hash && hash.startsWith('#post=')) {
+      const postId = decodeURIComponent(hash.substring(6));
+      const post = this.data.blog.posts.find(p => p.id === postId);
+      if (post) {
+        this.openBlogModal(postId, false);
+      }
+    } else if (!hash && AppState.currentModalPostId) {
+      this.closeBlogModal();
     }
   }
 
   shareArticle(post) {
     const l = AppState.lang;
-    const url = window.location.href;
+    const deepLink = `${window.location.origin}${window.location.pathname}#post=${encodeURIComponent(post.id)}`;
     const title = post.title[l];
 
     if (navigator.share) {
-      navigator.share({ title, url }).catch(() => {});
+      navigator.share({ title, url: deepLink }).catch(() => {});
     } else {
-      navigator.clipboard.writeText(`${title} - ${url}`).then(() => {
-        this.showToast(this.data.ui.toasts.linkCopied[l]);
-      });
+      this.copyTextToClipboard(deepLink, this.data.ui.toasts.linkCopied[l]);
     }
   }
 
   // --------------------------------------------------------------------------
-  // Contact & Social Section (Overflow-Safe Inputs & Channels)
+  // Contact & Social Section (One-click copy & mailto fallback)
   // --------------------------------------------------------------------------
   renderContact() {
     const c = this.data.contact;
     const l = AppState.lang;
+    const common = this.data.ui.common;
 
     const contactTitle = document.getElementById('contact-section-title');
-    if (contactTitle) {
-      contactTitle.textContent = c.title[l];
-    }
+    if (contactTitle) contactTitle.textContent = c.title[l];
 
     const contactSubtitle = document.getElementById('contact-section-subtitle');
-    if (contactSubtitle) {
-      contactSubtitle.textContent = c.subtitle[l];
-    }
+    if (contactSubtitle) contactSubtitle.textContent = c.subtitle[l];
 
     const channelsTitle = document.getElementById('contact-channels-title');
-    if (channelsTitle && c.channelsTitle) {
-      channelsTitle.textContent = c.channelsTitle[l];
-    }
+    if (channelsTitle && c.channelsTitle) channelsTitle.textContent = c.channelsTitle[l];
 
-    // Channels Grid with break-all for long emails on small screens
+    // Channels Grid
     const channelsContainer = document.getElementById('contact-channels-grid');
     if (channelsContainer) {
-      channelsContainer.innerHTML = c.channels.map(chan => `
-        <a href="${chan.href}" target="_blank" rel="noopener noreferrer" class="glass-card p-3.5 sm:p-4 rounded-xl border border-slate-800/80 hover:border-cyan-500/50 flex items-center justify-between group transition-all min-w-0">
-          <div class="flex items-center gap-3 min-w-0 flex-1">
-            <div class="p-2 sm:p-2.5 rounded-lg bg-cyan-500/10 text-cyan-400 group-hover:bg-cyan-500 group-hover:text-slate-950 transition-colors shrink-0">
-              ${getIcon(chan.icon, 'w-5 h-5')}
-            </div>
-            <div class="min-w-0 flex-1">
-              <div class="text-[11px] sm:text-xs text-slate-400">${chan.name}</div>
-              <div class="text-xs sm:text-sm font-bold text-white group-hover:text-cyan-400 transition-colors font-mono break-all sm:break-normal truncate">${chan.value}</div>
+      channelsContainer.innerHTML = c.channels.map(chan => {
+        const isEmail = chan.name.toLowerCase() === 'email';
+        const copyButtonHtml = isEmail
+          ? `
+            <button data-copy-email type="button" class="min-h-[36px] px-2.5 py-1 text-xs font-semibold rounded-lg bg-cyan-500/10 hover:bg-cyan-500/20 text-cyan-600 dark:text-cyan-400 border border-cyan-500/30 transition-all flex items-center gap-1.5 shrink-0 me-2" title="${common.copyEmail[l]}" aria-label="${common.copyEmail[l]}">
+              ${getIcon('copy', 'w-3.5 h-3.5')}
+              <span class="hidden sm:inline">${common.copyEmail[l]}</span>
+            </button>
+          `
+          : '';
+
+        return `
+          <div class="glass-card p-3.5 sm:p-4 rounded-xl border border-slate-200 dark:border-slate-800/80 hover:border-cyan-500/50 flex items-center justify-between group transition-all min-w-0">
+            <a href="${chan.href}" target="_blank" rel="noopener noreferrer" class="flex items-center gap-3 min-w-0 flex-1">
+              <div class="p-2 sm:p-2.5 rounded-lg bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 group-hover:bg-cyan-500 group-hover:text-white transition-colors shrink-0">
+                ${getIcon(chan.icon, 'w-5 h-5')}
+              </div>
+              <div class="min-w-0 flex-1">
+                <div class="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400">${chan.name}</div>
+                <div class="text-xs sm:text-sm font-bold text-slate-900 dark:text-white group-hover:text-cyan-600 dark:group-hover:text-cyan-400 transition-colors font-mono break-all sm:break-normal truncate">${chan.value}</div>
+              </div>
+            </a>
+            <div class="flex items-center shrink-0">
+              ${copyButtonHtml}
+              <a href="${chan.href}" target="_blank" rel="noopener noreferrer" class="p-1 text-slate-400 hover:text-cyan-600 dark:hover:text-cyan-400 transition-colors" aria-label="Open ${chan.name}">
+                ${AppState.lang === 'ar' ? getIcon('arrow-left', 'w-4 h-4') : getIcon('arrow-right', 'w-4 h-4')}
+              </a>
             </div>
           </div>
-          <span class="text-slate-500 group-hover:text-cyan-400 transition-colors shrink-0 ms-2">
-            ${AppState.lang === 'ar' ? getIcon('arrow-left', 'w-4 h-4') : getIcon('arrow-right', 'w-4 h-4')}
-          </span>
-        </a>
-      `).join('');
+        `;
+      }).join('');
     }
 
-    // Form placeholders and labels
+    // Form labels and placeholders
     const f = c.form;
     const nameLabel = document.getElementById('form-name-label');
     const nameInput = document.getElementById('form-name-input');
@@ -943,19 +1065,34 @@ class PortfolioApp {
     const form = e.target;
     const submitBtn = document.getElementById('form-submit-btn');
 
+    const name = document.getElementById('form-name-input')?.value.trim() || '';
+    const email = document.getElementById('form-email-input')?.value.trim() || '';
+    const subject = document.getElementById('form-subject-input')?.value.trim() || '';
+    const message = document.getElementById('form-message-input')?.value.trim() || '';
+
     if (submitBtn) {
       submitBtn.disabled = true;
       submitBtn.innerHTML = `<span>...</span>`;
     }
 
+    // Instant toast confirmation
+    this.showToast(this.data.ui.toasts.msgSent[l]);
+
+    // Construct smart mailto fallback link so static GitHub Pages host never loses messages
+    const recipient = this.data.profile.email;
+    const mailtoSubject = encodeURIComponent(`[Portfolio] ${subject} - ${name}`);
+    const mailtoBody = encodeURIComponent(`From: ${name}\nEmail: ${email}\n\nMessage:\n${message}`);
+    const mailtoUrl = `mailto:${recipient}?subject=${mailtoSubject}&body=${mailtoBody}`;
+
     setTimeout(() => {
-      this.showToast(this.data.ui.toasts.msgSent[l]);
       form.reset();
       if (submitBtn) {
         submitBtn.disabled = false;
         submitBtn.innerHTML = `<span>${this.data.contact.form.submitBtn[l]}</span>`;
       }
-    }, 600);
+      // Open mailto client pre-populated with user inquiry
+      window.location.href = mailtoUrl;
+    }, 700);
   }
 
   // --------------------------------------------------------------------------
@@ -973,11 +1110,50 @@ class PortfolioApp {
     const backToTopBtn = document.getElementById('back-to-top-btn');
     if (backToTopBtn) {
       backToTopBtn.setAttribute('title', common.backToTop[l]);
+      backToTopBtn.setAttribute('aria-label', common.backToTop[l]);
     }
   }
 
   // --------------------------------------------------------------------------
-  // Responsive Toast Engine
+  // Active Navigation ScrollSpy (IntersectionObserver 60FPS)
+  // --------------------------------------------------------------------------
+  initScrollSpy() {
+    const sectionIds = ['hero', 'about', 'roadmap', 'stack', 'blog', 'contact'];
+    const sections = sectionIds.map(id => document.getElementById(id)).filter(Boolean);
+
+    if (!('IntersectionObserver' in window) || sections.length === 0) return;
+
+    if (this.scrollSpyObserver) {
+      this.scrollSpyObserver.disconnect();
+    }
+
+    this.scrollSpyObserver = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          this.setActiveNavLink(entry.target.id);
+        }
+      });
+    }, {
+      rootMargin: '-20% 0px -70% 0px'
+    });
+
+    sections.forEach(sec => this.scrollSpyObserver.observe(sec));
+  }
+
+  setActiveNavLink(activeId) {
+    const links = document.querySelectorAll('#nav-links a, #mobile-nav-links a');
+    links.forEach(link => {
+      const href = link.getAttribute('href');
+      if (href === `#${activeId}`) {
+        link.classList.add('nav-link-active');
+      } else {
+        link.classList.remove('nav-link-active');
+      }
+    });
+  }
+
+  // --------------------------------------------------------------------------
+  // Toast Notifications & Clipboard Engine
   // --------------------------------------------------------------------------
   showToast(message, duration = 3600) {
     const container = document.getElementById('toast-container');
@@ -986,13 +1162,12 @@ class PortfolioApp {
     const toast = document.createElement('div');
     toast.className = 'toast-item';
     toast.innerHTML = `
-      <span class="text-cyan-400 shrink-0">${getIcon('check-circle-2', 'w-5 h-5')}</span>
+      <span class="text-cyan-600 dark:text-cyan-400 shrink-0">${getIcon('check-circle-2', 'w-5 h-5')}</span>
       <span>${message}</span>
     `;
 
     container.appendChild(toast);
 
-    // Trigger enter transition
     requestAnimationFrame(() => {
       toast.classList.add('show');
     });
@@ -1007,36 +1182,46 @@ class PortfolioApp {
 
   copyProfileLink() {
     const l = AppState.lang;
-    const url = window.location.href;
+    const url = `${window.location.origin}${window.location.pathname}`;
+    this.copyTextToClipboard(url, this.data.ui.toasts.linkCopied[l]);
+  }
 
-    if (navigator.clipboard) {
-      navigator.clipboard.writeText(url).then(() => {
-        this.showToast(this.data.ui.toasts.linkCopied[l]);
+  copyTextToClipboard(text, successToastMsg) {
+    if (navigator.clipboard && window.isSecureContext) {
+      navigator.clipboard.writeText(text).then(() => {
+        if (successToastMsg) this.showToast(successToastMsg);
       }).catch(() => {
-        this.fallbackCopyText(url);
+        this.fallbackCopyText(text, successToastMsg);
       });
     } else {
-      this.fallbackCopyText(url);
+      this.fallbackCopyText(text, successToastMsg);
     }
   }
 
-  fallbackCopyText(text) {
+  fallbackCopyText(text, successToastMsg) {
     const textArea = document.createElement("textarea");
     textArea.value = text;
     textArea.style.position = "fixed";
     textArea.style.top = "-9999px";
+    textArea.style.left = "-9999px";
     document.body.appendChild(textArea);
     textArea.focus();
     textArea.select();
     try {
       document.execCommand('copy');
-      this.showToast(this.data.ui.toasts.linkCopied[AppState.lang]);
-    } catch (err) {}
+      if (successToastMsg) this.showToast(successToastMsg);
+    } catch (err) {
+      console.warn('[Clipboard] Fallback failed:', err);
+    }
     document.body.removeChild(textArea);
   }
 }
 
-// Initialize Application when DOM is ready
-document.addEventListener('DOMContentLoaded', () => {
+// Bootstrap Application once DOM is parsed
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', () => {
+    window.app = new PortfolioApp();
+  });
+} else {
   window.app = new PortfolioApp();
-});
+}
