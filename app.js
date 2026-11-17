@@ -2,20 +2,19 @@
  * ====================================================================
  * APPLICATION CONTROLLER - IBRAHIM WAZNI PORTFOLIO & BLOG
  * ====================================================================
- * Principal Frontend Architect & Web Performance Engineered Controller.
- * Features:
- *  - SafeStorage (crash-proof defensive localStorage wrapper)
- *  - Single-pass boot architecture (zero double-render)
- *  - Fault-isolated render pipeline with per-section try/catch
- *  - Pure Event Delegation (zero memory leaks / listener churn)
- *  - URL Deep-Linking (#post=<id>) with bidirectional hash synchronization
- *  - Full Modal A11y with focus restoration & dialog semantics
- *  - High-performance IntersectionObserver ScrollSpy (60 FPS)
- *  - Full WCAG AA/AAA Dual-Theme contrast system
- *  - One-click email copy & smart mailto fallback
+ * Production-Grade Architecture & 100% Data-Store Synchronization.
+ * Fully Restores All Sections:
+ *  - Philosophy & Mindset + Touch Typing (60+ WPM)
+ *  - Daily Discipline Pillars (4 Core Pillars restored from data.js)
+ *  - Books Mini-Shelf (Code, Pragmatic Programmer, Atomic Habits restored)
+ *  - Full 8-Course Academic Roadmap & Timeline with Interactive Filters
+ *  - Complete Daily Tech Stack & Productivity Arsenal (Dev + Productivity)
+ *  - Personal Blog Articles with Category Filters & Deep-Linked Modal Reader
+ *  - Full Light & Dark Dual-Theme Support (WCAG AA/AAA)
+ *  - ScrollSpy Navigation & SafeStorage Crash-Proof Persistence
  */
 
-// Defensive Storage Wrapper (prevents SecurityError / incognito crashes)
+// Defensive SafeStorage (prevents SecurityError / private browsing crashes)
 const SafeStorage = {
   getItem(key, fallback = null) {
     try {
@@ -100,7 +99,6 @@ class PortfolioApp {
 
   /**
    * Boot lifecycle: Single-pass render, event binding, scrollspy, and URL hash checking.
-   * Completely eliminates previous double-render bug.
    */
   init() {
     this.applyTheme(AppState.theme, false);
@@ -244,7 +242,7 @@ class PortfolioApp {
       });
     }
 
-    // Delegated Roadmap Filter Tabs (Zero listener churn)
+    // Delegated Roadmap Filter Tabs (Matches rm.categories in data.js)
     const roadmapFilters = document.getElementById('roadmap-filters');
     if (roadmapFilters) {
       roadmapFilters.addEventListener('click', (e) => {
@@ -256,7 +254,7 @@ class PortfolioApp {
       });
     }
 
-    // Delegated Blog Filter Tabs (Zero listener churn)
+    // Delegated Blog Filter Tabs (Matches b.categories in data.js)
     const blogFilters = document.getElementById('blog-filters');
     if (blogFilters) {
       blogFilters.addEventListener('click', (e) => {
@@ -504,7 +502,7 @@ class PortfolioApp {
   }
 
   // --------------------------------------------------------------------------
-  // About & Mindset Section
+  // About & Mindset Section (Restores Pillars & Books Shelf from data.js)
   // --------------------------------------------------------------------------
   renderAbout() {
     const am = this.data.aboutMindset;
@@ -547,38 +545,38 @@ class PortfolioApp {
       `;
     }
 
-    // Discipline Pillars Card
+    // Daily Discipline Pillars (100% synchronized with data.js items)
     const pillarsContainer = document.getElementById('discipline-pillars-card');
     if (pillarsContainer && am.disciplinePillars) {
       const dp = am.disciplinePillars;
       pillarsContainer.innerHTML = `
-        <div>
-          <h4 class="text-base sm:text-lg font-bold text-slate-900 dark:text-white mb-4 flex items-center gap-2 text-cyan-600 dark:text-cyan-400">
-            <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
-            <span>${dp.title[l]}</span>
-          </h4>
-          <div class="space-y-3.5">
-            ${dp.items.map(item => `
-              <div class="flex items-start gap-3 p-3 rounded-xl bg-slate-100 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800">
-                <div class="p-2 rounded-lg bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5">
-                  ${getIcon(item.icon, 'w-4 h-4')}
-                </div>
-                <div class="min-w-0">
-                  <div class="text-xs sm:text-sm font-bold text-slate-900 dark:text-white">${item.label[l]}</div>
-                  <div class="text-[11px] sm:text-xs text-slate-600 dark:text-slate-400 mt-0.5">${item.desc[l]}</div>
-                </div>
-              </div>
-            `).join('')}
+        <div class="flex flex-col justify-between h-full">
+          <div>
+            <h4 class="text-base sm:text-lg font-bold text-slate-900 dark:text-white mb-4 flex items-center gap-2 text-cyan-600 dark:text-cyan-400">
+              <svg class="w-5 h-5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+              <span>${dp.title[l]}</span>
+            </h4>
+            <ul class="space-y-3.5 text-sm text-slate-600 dark:text-slate-300">
+              ${dp.items.map(item => `
+                <li class="flex items-start gap-3">
+                  <span class="w-6 h-6 rounded-lg bg-cyan-500/20 text-cyan-600 dark:text-cyan-300 flex items-center justify-center font-mono font-bold text-xs shrink-0 mt-0.5">${item.num}</span>
+                  <div class="min-w-0">
+                    <strong class="text-slate-900 dark:text-white block font-semibold text-xs sm:text-sm">${item.title[l]}</strong>
+                    <span class="text-[11px] sm:text-xs text-slate-600 dark:text-slate-400 leading-relaxed block mt-0.5">${item.desc[l]}</span>
+                  </div>
+                </li>
+              `).join('')}
+            </ul>
           </div>
-        </div>
-        <div class="mt-4 pt-3.5 border-t border-slate-200 dark:border-slate-800/80 flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 font-mono">
-          <span>DAILY FOCUS TARGET</span>
-          <span class="text-cyan-600 dark:text-cyan-400 font-bold">8-12 HRS / DAY</span>
+          <div class="mt-4 pt-3.5 border-t border-slate-200 dark:border-slate-800/80 flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 font-mono">
+            <span>DAILY FOCUS TARGET</span>
+            <span class="text-cyan-600 dark:text-cyan-400 font-bold">8-12 HRS / DAY</span>
+          </div>
         </div>
       `;
     }
 
-    // Books Mini-Shelf
+    // Books Mini-Shelf (100% synchronized with data.js booksShelf)
     const booksTitle = document.getElementById('books-shelf-title');
     if (booksTitle) {
       booksTitle.querySelector('span:last-child').textContent = this.data.ui.sections.booksTitle[l];
@@ -587,21 +585,22 @@ class PortfolioApp {
     const booksContainer = document.getElementById('books-shelf-grid');
     if (booksContainer && am.booksShelf) {
       booksContainer.innerHTML = am.booksShelf.map(b => `
-        <div class="book-card glass-card p-5 rounded-2xl border border-slate-200 dark:border-slate-800/80 hover:border-cyan-500/50 flex flex-col justify-between h-full">
+        <div class="book-card glass-card p-5 sm:p-6 rounded-2xl border border-slate-200 dark:border-slate-800/80 hover:border-emerald-500/50 flex flex-col justify-between h-full group">
           <div>
-            <div class="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 mb-2">
-              <span class="px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-800 text-cyan-600 dark:text-cyan-300 font-mono font-bold text-[11px] border border-slate-200 dark:border-slate-700">
-                ${b.type[l]}
+            <div class="flex items-center justify-between gap-2 mb-3">
+              <span class="text-xs font-semibold px-2.5 py-1 rounded-full bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border border-emerald-500/30">
+                ${b.tag[l]}
               </span>
-              <span class="text-emerald-600 dark:text-emerald-400 font-semibold">${b.status[l]}</span>
+              <div class="text-emerald-600 dark:text-emerald-400">
+                ${getIcon(b.icon, 'w-5 h-5')}
+              </div>
             </div>
-            <h4 class="text-base font-bold text-slate-900 dark:text-white mt-2 mb-1">${b.title[l]}</h4>
-            <p class="text-xs text-cyan-600 dark:text-cyan-400/90 font-medium mb-3">${b.author}</p>
-            <p class="text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed">${b.impact[l]}</p>
+            <h4 class="text-base sm:text-lg font-bold text-slate-900 dark:text-white mb-1 group-hover:text-cyan-600 dark:group-hover:text-cyan-400 transition-colors">${b.title[l]}</h4>
+            <p class="text-xs text-slate-500 dark:text-slate-400 mb-3 font-medium">${b.author}</p>
+            <p class="text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed mb-4">${b.desc[l]}</p>
           </div>
-          <div class="mt-4 pt-3 border-t border-slate-200 dark:border-slate-800/80 flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400">
-            ${getIcon('sparkles', 'w-3.5 h-3.5 text-amber-500 shrink-0')}
-            <span class="truncate">${b.keyTakeaway[l]}</span>
+          <div class="pt-3 border-t border-slate-200 dark:border-slate-800/80 text-xs font-medium text-emerald-600 dark:text-emerald-400 italic">
+            ${b.impact[l]}
           </div>
         </div>
       `).join('');
@@ -609,10 +608,10 @@ class PortfolioApp {
   }
 
   // --------------------------------------------------------------------------
-  // Roadmap & Courses Section
+  // Academic Roadmap & Courses (Restores all 8 Courses from rm.items)
   // --------------------------------------------------------------------------
   renderRoadmap() {
-    const r = this.data.roadmap;
+    const rm = this.data.roadmap;
     const l = AppState.lang;
 
     const roadmapTitle = document.getElementById('roadmap-section-title');
@@ -621,83 +620,95 @@ class PortfolioApp {
     const roadmapSubtitle = document.getElementById('roadmap-section-subtitle');
     if (roadmapSubtitle) roadmapSubtitle.textContent = this.data.ui.sections.roadmapSubtitle[l];
 
-    // Filter Buttons (Horizontal swipe strip on mobile, flex-wrap on desktop)
-    const filtersContainer = document.getElementById('roadmap-filters');
-    if (filtersContainer) {
-      filtersContainer.innerHTML = r.filters.map(f => {
-        const isActive = AppState.activeRoadmapFilter === f.id;
+    // Filter Buttons (Synchronized with rm.categories)
+    const filterContainer = document.getElementById('roadmap-filters');
+    if (filterContainer && rm.categories) {
+      filterContainer.innerHTML = rm.categories.map(cat => {
+        const isActive = cat.id === AppState.activeRoadmapFilter;
         const activeClasses = 'bg-gradient-to-r from-cyan-500 to-blue-600 text-white font-bold shadow-md shadow-cyan-500/25 border-cyan-400';
         const inactiveClasses = 'bg-slate-100 hover:bg-slate-200 text-slate-700 border-slate-300 dark:bg-slate-800/80 dark:hover:bg-slate-700/80 dark:text-slate-300 dark:border-slate-700 hover:border-cyan-500/50';
 
         return `
-          <button data-roadmap-filter="${f.id}" class="min-h-[44px] px-4 py-2.5 rounded-xl text-xs sm:text-sm transition-all border whitespace-nowrap shrink-0 ${isActive ? activeClasses : inactiveClasses}">
-            ${f.label[l]}
+          <button data-roadmap-filter="${cat.id}" class="min-h-[44px] px-4 py-2.5 rounded-xl text-xs sm:text-sm transition-all border whitespace-nowrap shrink-0 ${isActive ? activeClasses : inactiveClasses}">
+            ${cat.label[l]}
           </button>
         `;
       }).join('');
     }
 
-    // Courses Grid (Equal heights & consistent alignment)
+    // Courses List (Synchronized with rm.items: all 8 courses restored)
     const coursesContainer = document.getElementById('courses-timeline-grid');
-    if (coursesContainer) {
-      const filteredCourses = r.courses.filter(c => {
+    if (coursesContainer && rm.items) {
+      const filteredCourses = rm.items.filter(item => {
         if (AppState.activeRoadmapFilter === 'all') return true;
-        return c.statusType === AppState.activeRoadmapFilter;
+        return item.status === AppState.activeRoadmapFilter;
       });
 
       const common = this.data.ui.common;
 
       coursesContainer.innerHTML = filteredCourses.map(c => {
-        const isCurrent = c.statusType === 'current';
-        const statusBadge = isCurrent
-          ? `<span class="px-2.5 py-1 rounded-full text-xs font-bold bg-emerald-500/15 text-emerald-600 dark:text-emerald-300 border border-emerald-500/30 flex items-center gap-1.5"><span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>${c.statusLabel[l]}</span>`
-          : `<span class="px-2.5 py-1 rounded-full text-xs font-bold bg-cyan-500/15 text-cyan-600 dark:text-cyan-300 border border-cyan-500/30 flex items-center gap-1.5">${getIcon('target', 'w-3.5 h-3.5')}${c.statusLabel[l]}</span>`;
+        const isCurrent = c.status === 'current';
+        const badgeBg = isCurrent
+          ? 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300 border-emerald-500/30'
+          : 'bg-purple-500/15 text-purple-700 dark:text-purple-300 border-purple-500/30';
+        const barGradient = isCurrent
+          ? 'from-cyan-500 to-emerald-400'
+          : 'from-purple-500 to-indigo-500';
 
         return `
-          <div class="glass-card p-5 sm:p-7 rounded-2xl border border-slate-200 dark:border-slate-800/80 hover:border-cyan-500/40 flex flex-col justify-between h-full group">
+          <div class="glass-card p-5 sm:p-7 rounded-2xl border border-slate-200 dark:border-slate-800/80 hover:border-cyan-500/40 relative overflow-hidden flex flex-col justify-between h-full group">
             <div>
-              <div class="flex items-center justify-between gap-3 mb-3 flex-wrap">
-                <span class="px-2.5 py-0.5 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-mono text-xs font-bold border border-slate-200 dark:border-slate-700">
-                  ${c.category[l]}
+              <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+                <span class="text-xs font-bold px-3 py-1 rounded-full border ${badgeBg} flex items-center gap-1.5">
+                  <span class="w-1.5 h-1.5 rounded-full ${isCurrent ? 'bg-emerald-500 animate-pulse' : 'bg-purple-500'}"></span>
+                  ${c.statusBadge[l]}
                 </span>
-                ${statusBadge}
+                <span class="text-xs text-slate-500 dark:text-slate-400 font-medium">${c.institution[l]}</span>
               </div>
 
-              <h4 class="text-base sm:text-lg font-bold text-slate-900 dark:text-white group-hover:text-cyan-600 dark:group-hover:text-cyan-400 transition-colors mb-2">
-                ${c.title[l]}
-              </h4>
+              <div class="flex items-start gap-3.5 mb-4">
+                <div class="p-3 rounded-xl bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 border border-cyan-500/20 shrink-0">
+                  ${getIcon(c.icon, 'w-6 h-6')}
+                </div>
+                <div>
+                  <h4 class="text-base sm:text-lg lg:text-xl font-bold text-slate-900 dark:text-white leading-snug group-hover:text-cyan-600 dark:group-hover:text-cyan-400 transition-colors">${c.title[l]}</h4>
+                </div>
+              </div>
 
-              <p class="text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed mb-4">
-                ${c.description[l]}
-              </p>
-
-              <!-- Concepts List -->
+              <!-- Core Topics -->
               <div class="mb-5">
-                <span class="text-xs font-bold text-slate-500 dark:text-slate-400 block mb-2">${common.topicsCovered[l]}</span>
-                <div class="flex flex-wrap gap-1.5">
-                  ${c.concepts.map(con => `
-                    <span class="px-2 py-0.5 rounded-md bg-slate-100 dark:bg-slate-900/80 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-800 text-[11px]">
-                      ${con[l]}
-                    </span>
+                <h5 class="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wider mb-2.5">${common.topicsCovered[l]}</h5>
+                <ul class="space-y-1.5">
+                  ${c.topics.map(t => `
+                    <li class="flex items-start gap-2 text-xs sm:text-sm text-slate-600 dark:text-slate-300">
+                      <span class="text-cyan-600 dark:text-cyan-400 mt-1 shrink-0">${getIcon('check-circle-2', 'w-3.5 h-3.5')}</span>
+                      <span>${t[l]}</span>
+                    </li>
                   `).join('')}
+                </ul>
+              </div>
+            </div>
+
+            <!-- Bottom Tools & Progress -->
+            <div class="pt-4 border-t border-slate-200 dark:border-slate-800/80">
+              <div class="flex flex-wrap items-center gap-1.5 mb-3.5">
+                ${c.tools.map(tool => `
+                  <span class="badge-code px-2 py-0.5 text-xs font-mono font-medium bg-slate-100 dark:bg-slate-900/80 text-cyan-700 dark:text-cyan-300 rounded border border-slate-200 dark:border-slate-800">
+                    ${tool}
+                  </span>
+                `).join('')}
+              </div>
+
+              <div>
+                <div class="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400 mb-1.5">
+                  <span>${common.progressLabel[l]}</span>
+                  <span class="font-mono font-bold text-slate-900 dark:text-white">${c.progress}%</span>
+                </div>
+                <div class="w-full h-2 rounded-full bg-slate-200 dark:bg-slate-800 overflow-hidden">
+                  <div class="progress-bar-fill h-full rounded-full bg-gradient-to-r ${barGradient}" style="width: ${c.progress}%;"></div>
                 </div>
               </div>
             </div>
-
-            <!-- Card Footer: Tools & Progress -->
-            <div class="pt-4 border-t border-slate-200 dark:border-slate-800/80 space-y-3">
-              <div class="flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
-                <span class="flex items-center gap-1">
-                  ${getIcon('terminal', 'w-3.5 h-3.5')}
-                  <span>${c.tools.join(', ')}</span>
-                </span>
-                <span class="font-mono font-bold text-slate-900 dark:text-white">${c.progress}%</span>
-              </div>
-              <div class="w-full h-1.5 bg-slate-200 dark:bg-slate-800 rounded-full overflow-hidden">
-                <div class="progress-bar-fill h-full bg-gradient-to-r from-cyan-500 to-emerald-400 rounded-full" style="width: ${c.progress}%"></div>
-              </div>
-            </div>
-
           </div>
         `;
       }).join('');
@@ -705,10 +716,10 @@ class PortfolioApp {
   }
 
   // --------------------------------------------------------------------------
-  // Tech Stack Section
+  // Daily Tech Stack & Productivity Arsenal (Restores all Tools from ts.categories)
   // --------------------------------------------------------------------------
   renderTechStack() {
-    const s = this.data.techStack;
+    const ts = this.data.techStack;
     const l = AppState.lang;
 
     const stackTitle = document.getElementById('stack-section-title');
@@ -717,35 +728,33 @@ class PortfolioApp {
     const stackSubtitle = document.getElementById('stack-section-subtitle');
     if (stackSubtitle) stackSubtitle.textContent = this.data.ui.sections.stackSubtitle[l];
 
-    const groupsContainer = document.getElementById('stack-groups-container');
-    if (groupsContainer) {
-      groupsContainer.innerHTML = s.groups.map(group => `
+    const stackContainer = document.getElementById('stack-groups-container');
+    if (stackContainer && ts.categories) {
+      stackContainer.innerHTML = ts.categories.map(cat => `
         <div class="mb-10 sm:mb-14 last:mb-0">
-          <div class="flex items-center gap-3 mb-6">
+          <div class="flex items-center gap-3 mb-5">
             <span class="w-2.5 h-6 rounded-full bg-gradient-to-b from-cyan-500 to-emerald-400 shrink-0"></span>
             <div>
-              <h3 class="text-lg sm:text-xl font-bold text-slate-900 dark:text-white">${group.title[l]}</h3>
-              <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400">${group.description[l]}</p>
+              <h3 class="text-lg sm:text-xl font-bold text-slate-900 dark:text-white">${cat.title[l]}</h3>
+              <p class="text-xs sm:text-sm text-slate-500 dark:text-slate-400">${cat.desc[l]}</p>
             </div>
           </div>
 
           <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
-            ${group.tools.map(tool => `
+            ${cat.tools.map(tool => `
               <div class="glass-card p-4 sm:p-5 rounded-2xl border border-slate-200 dark:border-slate-800/80 hover:border-cyan-500/50 flex flex-col justify-between h-full group">
                 <div>
                   <div class="flex items-center justify-between mb-3">
-                    <div class="p-2 sm:p-2.5 rounded-xl bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 group-hover:scale-110 transition-transform shrink-0">
+                    <div class="p-2.5 sm:p-3 rounded-xl bg-cyan-500/10 text-cyan-600 dark:text-cyan-400 group-hover:scale-110 transition-transform shrink-0">
                       ${getIcon(tool.icon, 'w-5 h-5 sm:w-6 sm:h-6')}
                     </div>
-                    <span class="text-[11px] font-mono font-semibold px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-900 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-800">
-                      ${tool.level[l]}
+                    <span class="badge-code text-xs px-2 py-0.5 rounded font-mono font-bold bg-slate-100 dark:bg-slate-900 text-cyan-700 dark:text-cyan-300 border border-slate-200 dark:border-slate-800">
+                      ${tool.badge}
                     </span>
                   </div>
                   <h4 class="text-base font-bold text-slate-900 dark:text-white group-hover:text-cyan-600 dark:group-hover:text-cyan-400 transition-colors mb-1">${tool.name}</h4>
-                  <p class="text-xs text-slate-600 dark:text-slate-300 leading-relaxed mb-3">${tool.role[l]}</p>
-                </div>
-                <div class="pt-3 border-t border-slate-200 dark:border-slate-800/80 text-[11px] text-cyan-600 dark:text-cyan-400/90 font-mono">
-                  ${tool.details[l]}
+                  <p class="text-xs font-semibold text-cyan-600 dark:text-cyan-400/90 mb-2">${tool.category[l]}</p>
+                  <p class="text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed">${tool.desc[l]}</p>
                 </div>
               </div>
             `).join('')}
@@ -756,7 +765,7 @@ class PortfolioApp {
   }
 
   // --------------------------------------------------------------------------
-  // Blog Section & Article Grid
+  // Blog & Study Notes (Restores b.categories & b.posts from data.js)
   // --------------------------------------------------------------------------
   renderBlog() {
     const b = this.data.blog;
@@ -768,25 +777,25 @@ class PortfolioApp {
     const blogSubtitle = document.getElementById('blog-section-subtitle');
     if (blogSubtitle) blogSubtitle.textContent = this.data.ui.sections.blogSubtitle[l];
 
-    // Filter Buttons
-    const filtersContainer = document.getElementById('blog-filters');
-    if (filtersContainer) {
-      filtersContainer.innerHTML = b.filters.map(f => {
-        const isActive = AppState.activeBlogFilter === f.id;
+    // Category Filter Buttons (Synchronized with b.categories)
+    const blogFilters = document.getElementById('blog-filters');
+    if (blogFilters && b.categories) {
+      blogFilters.innerHTML = b.categories.map(cat => {
+        const isActive = cat.id === AppState.activeBlogFilter;
         const activeClasses = 'bg-gradient-to-r from-cyan-500 to-blue-600 text-white font-bold shadow-md shadow-cyan-500/25 border-cyan-400';
         const inactiveClasses = 'bg-slate-100 hover:bg-slate-200 text-slate-700 border-slate-300 dark:bg-slate-800/80 dark:hover:bg-slate-700/80 dark:text-slate-300 dark:border-slate-700 hover:border-cyan-500/50';
 
         return `
-          <button data-blog-filter="${f.id}" class="min-h-[44px] px-4 py-2.5 rounded-xl text-xs sm:text-sm transition-all border whitespace-nowrap shrink-0 ${isActive ? activeClasses : inactiveClasses}">
-            ${f.label[l]}
+          <button data-blog-filter="${cat.id}" class="min-h-[44px] px-4 py-2.5 rounded-xl text-xs sm:text-sm transition-all border whitespace-nowrap shrink-0 ${isActive ? activeClasses : inactiveClasses}">
+            ${cat.label[l]}
           </button>
         `;
       }).join('');
     }
 
-    // Articles Grid
+    // Articles Grid (Synchronized with b.posts)
     const postsContainer = document.getElementById('blog-posts-grid');
-    if (postsContainer) {
+    if (postsContainer && b.posts) {
       const filteredPosts = b.posts.filter(p => {
         if (AppState.activeBlogFilter === 'all') return true;
         return p.category === AppState.activeBlogFilter;
@@ -997,7 +1006,7 @@ class PortfolioApp {
 
     // Channels Grid
     const channelsContainer = document.getElementById('contact-channels-grid');
-    if (channelsContainer) {
+    if (channelsContainer && c.channels) {
       channelsContainer.innerHTML = c.channels.map(chan => {
         const isEmail = chan.name.toLowerCase() === 'email';
         const copyButtonHtml = isEmail
