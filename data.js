@@ -775,7 +775,7 @@ int main() {
         name: "WhatsApp",
         label: { ar: "تواصل مباشر عبر واتساب", en: "WhatsApp Direct" },
         value: "+20 100 000 0000",
-        href: "https://wa.me/201000000000",
+        href: "https://wa.me/201200981049",
         icon: "message-circle",
         color: "emerald"
       },
