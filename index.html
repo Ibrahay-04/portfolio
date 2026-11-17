@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl" class="dark scroll-smooth">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+  <title>إبراهيم حيدر وزني | Ibrahim Wazni - CS & AI Portfolio</title>
+  
+  <!-- SEO & Social Sharing Meta Tags -->
+  <meta name="description" content="الملف الشخصي والمدونة التقنية للطالب إبراهيم حيدر عبد الله وزني - طالب سنة أولى بكلية الحاسبات والذكاء الاصطناعي بجامعة حلوان (جامعة العاصمة).">
+  <meta name="keywords" content="إبراهيم حيدر, إبراهيم وزني, Ibrahim Wazni, حاسبات وذكاء اصطناعي, جامعة حلوان, جامعة العاصمة, C Programming, Digital Logic, Machine Learning">
+  <meta name="author" content="إبراهيم حيدر عبد الله وزني">
+  <meta property="og:title" content="إبراهيم حيدر وزني | CS & AI Student & Portfolio">
+  <meta property="og:description" content="الملف الشخصي والمدونة التقنية لطالب الحاسبات والذكاء الاصطناعي - جامعة حلوان.">
+  <meta property="og:image" content="profile.jpg">
+  <meta property="og:type" content="website">
+  <meta name="twitter:card" content="summary_large_image">
+
+  <!-- SVG Favicon -->
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='25' fill='%230B1120'/><path d='M30 65 L48 35 L66 65 Z' fill='none' stroke='%2306B6D4' stroke-width='8'/><circle cx='50' cy='50' r='10' fill='%2310B981'/></svg>">
+
+  <!-- Google Fonts Preconnect & Styles -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800;900&family=IBM+Plex+Sans+Arabic:wght@300;400;500;600;700&family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+  <!-- Tailwind CSS via CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            slate: {
+              950: '#070C18',
+              900: '#0B1120',
+              850: '#0F172A',
+              800: '#1E293B',
+              750: '#27354A',
+              700: '#334155'
+            },
+            cyan: {
+              300: '#67E8F9',
+              400: '#22D3EE',
+              500: '#06B6D4',
+              600: '#0891B2'
+            },
+            emerald: {
+              300: '#6EE7B7',
+              400: '#34D399',
+              500: '#10B981',
+              600: '#059669'
+            }
+          }
+        }
+      }
+    };
+  </script>
+
+  <!-- Custom Stylesheet -->
+  <link rel="stylesheet" href="styles.css">
+</head>
+
+<body class="bg-slate-900 text-slate-100 dark:bg-slate-900 dark:text-slate-100 relative selection:bg-cyan-500 selection:text-slate-950">
+
+  <!-- Ambient Background Glowing Orbs -->
+  <div class="fixed inset-0 pointer-events-none overflow-hidden z-0 bg-grid-pattern max-w-[100vw]">
+    <div class="glow-orb w-72 h-72 sm:w-96 sm:h-96 bg-cyan-500/20 top-[-10%] start-[-10%]"></div>
+    <div class="glow-orb w-80 h-80 sm:w-[28rem] sm:h-[28rem] bg-emerald-500/15 top-[35%] end-[-15%]"></div>
+    <div class="glow-orb w-72 h-72 sm:w-[24rem] sm:h-[24rem] bg-purple-600/15 bottom-[-10%] start-[15%]"></div>
+  </div>
+
+  <!-- ========================================================================
+       Sticky Glassmorphic Navigation Bar
+       ======================================================================== -->
+  <header class="sticky top-0 z-50 backdrop-blur-xl bg-slate-900/80 dark:bg-slate-900/80 border-b border-slate-800/80 transition-colors">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex items-center justify-between h-16 sm:h-20">
+        
+        <!-- Brand / Identity -->
+        <a href="#" class="flex items-center gap-2.5 sm:gap-3 group shrink-0">
+          <div class="w-9 h-9 sm:w-11 sm:h-11 rounded-xl sm:rounded-2xl bg-gradient-to-tr from-cyan-500 to-emerald-400 p-0.5 shadow-lg shadow-cyan-500/20 group-hover:scale-105 transition-transform">
+            <div class="w-full h-full bg-slate-900 rounded-[10px] sm:rounded-[14px] flex items-center justify-center font-mono font-black text-cyan-400 text-sm sm:text-lg">
+              IW
+            </div>
+          </div>
+          <div>
+            <span id="nav-brand-name" class="font-bold text-sm sm:text-lg text-white group-hover:text-cyan-400 transition-colors tracking-tight block">
+              إبراهيم وزني
+            </span>
+            <span class="text-[10px] sm:text-[11px] text-cyan-400/90 font-mono tracking-wider block">
+              FCAI HELWAN '26
+            </span>
+          </div>
+        </a>
+
+        <!-- Desktop Navigation Links -->
+        <nav id="nav-links" class="hidden md:flex items-center gap-6 lg:gap-8"></nav>
+
+        <!-- Navbar Action Controls (Theme, Language, Menu) -->
+        <div class="flex items-center gap-2 sm:gap-3 shrink-0">
+          <!-- Language Toggle Button (Desktop) -->
+          <button id="lang-toggle-btn" class="hidden md:inline-flex px-3.5 py-2 rounded-xl bg-slate-800/80 hover:bg-slate-800 text-slate-200 border border-slate-700/70 hover:border-cyan-500/50 transition-all items-center gap-2">
+            <!-- populated by JS -->
+          </button>
+
+          <!-- Theme Toggle Button -->
+          <button id="theme-toggle-btn" class="p-2 sm:p-2.5 rounded-xl bg-slate-800/80 hover:bg-slate-800 text-slate-200 border border-slate-700/70 hover:border-cyan-500/50 transition-all flex items-center justify-center" aria-label="Toggle Theme">
+            <!-- populated by JS -->
+          </button>
+
+          <!-- Mobile Hamburger Toggle -->
+          <button id="mobile-menu-btn" class="md:hidden p-2 rounded-xl bg-slate-800 text-slate-200 hover:text-white border border-slate-700 focus:outline-none flex items-center justify-center" aria-label="Open Menu">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"/></svg>
+          </button>
+        </div>
+
+      </div>
+    </div>
+  </header>
+
+  <!-- Mobile Drawer Menu -->
+  <div id="mobile-menu" class="hidden fixed inset-0 z-50 bg-slate-950/98 backdrop-blur-2xl flex flex-col justify-between p-6">
+    <div class="flex items-center justify-between border-b border-slate-800 pb-4">
+      <div class="flex items-center gap-2.5">
+        <div class="w-9 h-9 rounded-xl bg-cyan-500/20 text-cyan-400 flex items-center justify-center font-bold font-mono">IW</div>
+        <div>
+          <span class="font-bold text-white text-base block">إبراهيم وزني</span>
+          <span class="text-xs text-cyan-400 font-mono">CS & AI Freshman '26</span>
+        </div>
+      </div>
+      <button id="mobile-menu-close" class="p-2 text-slate-400 hover:text-white rounded-lg bg-slate-900 border border-slate-800" aria-label="Close menu">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+      </button>
+    </div>
+
+    <nav id="mobile-nav-links" class="flex flex-col gap-3 my-auto"></nav>
+
+    <div class="pt-6 border-t border-slate-800 flex flex-col gap-3">
+      <button id="mobile-lang-toggle-btn" class="px-4 py-3 rounded-xl bg-slate-800 text-slate-200 border border-slate-700 w-full text-center font-semibold flex items-center justify-center gap-2">
+        <!-- populated by JS -->
+      </button>
+    </div>
+  </div>
+
+  <main class="relative z-10 overflow-hidden">
+
+    <!-- ========================================================================
+         1. HERO SECTION & PERSONAL IDENTITY
+         ======================================================================== -->
+    <section id="hero" class="pt-8 sm:pt-16 pb-14 sm:pb-24">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-8 items-center">
+          
+          <!-- Hero Text Column -->
+          <div class="lg:col-span-7 flex flex-col items-start order-2 lg:order-1 w-full min-w-0">
+            
+            <!-- Floating Live Status Badge -->
+            <div id="hero-status-badge" class="inline-flex items-center relative px-3 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/25 mb-4 sm:mb-6">
+              <!-- populated by JS -->
+            </div>
+
+            <!-- Name Title -->
+            <h1 id="hero-name" class="text-2xl sm:text-4xl lg:text-5xl font-black text-white tracking-tight leading-[1.2] mb-3 sm:mb-4">
+              <!-- populated by JS -->
+            </h1>
+
+            <!-- Headline with Gradient Accent -->
+            <h2 id="hero-headline" class="text-base sm:text-xl lg:text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 via-teal-300 to-emerald-400 leading-snug mb-5 sm:mb-6">
+              <!-- populated by JS -->
+            </h2>
+
+            <!-- Bio Narrative -->
+            <p id="hero-bio" class="text-sm sm:text-base lg:text-lg text-slate-300 leading-relaxed mb-6 sm:mb-8 max-w-2xl">
+              <!-- populated by JS -->
+            </p>
+
+            <!-- Call-to-Action Buttons -->
+            <div id="hero-cta-container" class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full sm:w-auto mb-6 sm:mb-8">
+              <!-- populated by JS -->
+            </div>
+
+          </div>
+
+          <!-- Hero Image & Framed Card Column -->
+          <div class="lg:col-span-5 flex justify-center lg:justify-end order-1 lg:order-2 w-full min-w-0">
+            <div class="relative w-full max-w-[280px] sm:max-w-xs lg:max-w-sm">
+              
+              <!-- Subtle Background Glow -->
+              <div class="absolute -inset-3 bg-gradient-to-r from-cyan-500/30 to-emerald-500/20 rounded-[2.2rem] blur-xl opacity-60"></div>
+
+              <!-- Framed Profile Card -->
+              <div class="profile-frame relative">
+                <div class="aspect-[4/5] rounded-[1.6rem] overflow-hidden bg-slate-950 relative">
+                  <img src="profile.jpg" alt="إبراهيم حيدر وزني | Ibrahim Wazni" class="profile-img" onerror="this.onerror=null; this.src='https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=800&q=80';">
+                  
+                  <!-- Gradient overlay for text contrast at the bottom of the photo -->
+                  <div class="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-transparent to-transparent"></div>
+                  
+                  <div class="absolute bottom-4 inset-x-4 flex items-center justify-between text-white">
+                    <div>
+                      <span class="text-sm font-bold block text-white drop-shadow">Ibrahim Wazni</span>
+                      <span class="text-xs text-cyan-300 font-mono drop-shadow">Freshman Class of '26</span>
+                    </div>
+                    <span class="px-2 py-0.5 rounded-lg bg-cyan-500/20 border border-cyan-400/40 text-cyan-300 text-[11px] font-mono font-bold backdrop-blur-md">
+                      FCAI
+                    </span>
+                  </div>
+                </div>
+
+                <!-- Floating Badge in corner -->
+                <div id="hero-float-badge" class="floating-badge absolute -top-3 -end-3 z-20">
+                  <!-- populated by JS -->
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Metric & Stats Counter Shelf -->
+        <div id="hero-stats-grid" class="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-5 mt-10 sm:mt-16">
+          <!-- populated by JS -->
+        </div>
+
+      </div>
+    </section>
+
+
+    <!-- ========================================================================
+         2. SECTION A: ABOUT ME & MINDSET (من أنا وفلسفتي)
+         ======================================================================== -->
+    <section id="about" class="py-14 sm:py-20 border-t border-slate-800/80 relative">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        
+        <!-- Section Header -->
+        <div class="text-center max-w-3xl mx-auto mb-12 sm:mb-16">
+          <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 text-xs font-bold uppercase tracking-wider mb-3">
+            01 // Mindset & Foundations
+          </div>
+          <h2 id="about-section-title" class="text-2xl sm:text-3xl lg:text-4xl font-black text-white mb-3 sm:mb-4">
+            <!-- populated by JS -->
+          </h2>
+          <p id="about-section-subtitle" class="text-sm sm:text-base lg:text-lg text-slate-400">
+            <!-- populated by JS -->
+          </p>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-8 items-start mb-12 sm:mb-16">
+          
+          <!-- Philosophy Narrative & Routine -->
+          <div class="lg:col-span-7 space-y-5 sm:space-y-6">
+            <div class="glass-card p-5 sm:p-7 rounded-2xl border border-slate-800">
+              <h3 id="about-philosophy-title" class="text-lg sm:text-xl lg:text-2xl font-black text-white mb-4 flex items-center gap-3">
+                <span class="w-2 h-6 sm:h-7 rounded-full bg-cyan-400 shrink-0"></span>
+                <span><!-- populated by JS --></span>
+              </h3>
+              <div id="about-paragraphs" class="space-y-4">
+                <!-- populated by JS -->
+              </div>
+            </div>
+
+            <!-- Touch Typing Card -->
+            <div id="touch-typing-card"></div>
+          </div>
+
+          <!-- Academic Routine & Discipline Pillars -->
+          <div class="lg:col-span-5 space-y-4">
+            <div id="discipline-pillars-card" class="glass-card p-5 sm:p-7 rounded-2xl border border-slate-800">
+              <!-- populated by JS -->
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Books Mini-Shelf -->
+        <div class="mt-12 sm:mt-16">
+          <div class="flex items-center justify-between mb-6 sm:mb-8">
+            <h3 id="books-shelf-title" class="text-lg sm:text-xl lg:text-2xl font-bold text-white flex items-center gap-2.5">
+              <span class="p-2 rounded-xl bg-emerald-500/10 text-emerald-400">
+                <svg class="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
+              </span>
+              <span><!-- populated by JS --></span>
+            </h3>
+          </div>
+          <div id="books-shelf-grid" class="grid grid-cols-1 md:grid-cols-3 gap-5 sm:gap-6">
+            <!-- populated by JS -->
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+
+    <!-- ========================================================================
+         3. SECTION B: ACADEMIC & SELF-STUDY ROADMAP (الكورسات والمسار)
+         ======================================================================== -->
+    <section id="roadmap" class="py-14 sm:py-20 border-t border-slate-800/80 relative">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        
+        <!-- Section Header -->
+        <div class="text-center max-w-3xl mx-auto mb-10 sm:mb-12">
+          <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 text-xs font-bold uppercase tracking-wider mb-3">
+            02 // Curriculum & Milestones
+          </div>
+          <h2 id="roadmap-section-title" class="text-2xl sm:text-3xl lg:text-4xl font-black text-white mb-3 sm:mb-4">
+            <!-- populated by JS -->
+          </h2>
+          <p id="roadmap-section-subtitle" class="text-sm sm:text-base lg:text-lg text-slate-400">
+            <!-- populated by JS -->
+          </p>
+        </div>
+
+        <!-- Filter Tabs -->
+        <div id="roadmap-filters" class="flex flex-wrap items-center justify-center gap-2 sm:gap-2.5 mb-10 sm:mb-12">
+          <!-- populated by JS -->
+        </div>
+
+        <!-- Interactive Split Grid -->
+        <div id="courses-timeline-grid" class="grid grid-cols-1 md:grid-cols-2 gap-5 sm:gap-7">
+          <!-- populated by JS -->
+        </div>
+
+      </div>
+    </section>
+
+
+    <!-- ========================================================================
+         4. SECTION C: DAILY TECH STACK & ARSENAL (أدواتي وترسانتي)
+         ======================================================================== -->
+    <section id="stack" class="py-14 sm:py-20 border-t border-slate-800/80 relative">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        
+        <!-- Section Header -->
+        <div class="text-center max-w-3xl mx-auto mb-12 sm:mb-16">
+          <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 text-xs font-bold uppercase tracking-wider mb-3">
+            03 // Arsenal & Tools
+          </div>
+          <h2 id="stack-section-title" class="text-2xl sm:text-3xl lg:text-4xl font-black text-white mb-3 sm:mb-4">
+            <!-- populated by JS -->
+          </h2>
+          <p id="stack-section-subtitle" class="text-sm sm:text-base lg:text-lg text-slate-400">
+            <!-- populated by JS -->
+          </p>
+        </div>
+
+        <!-- Stack Categories and Cards -->
+        <div id="stack-groups-container">
+          <!-- populated by JS -->
+        </div>
+
+      </div>
+    </section>
+
+
+    <!-- ========================================================================
+         5. SECTION D: PERSONAL BLOG & STUDY NOTES (مدونتي وملاحظاتي)
+         ======================================================================== -->
+    <section id="blog" class="py-14 sm:py-20 border-t border-slate-800/80 relative">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        
+        <!-- Section Header -->
+        <div class="text-center max-w-3xl mx-auto mb-10 sm:mb-12">
+          <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 text-xs font-bold uppercase tracking-wider mb-3">
+            04 // Insights & Notes
+          </div>
+          <h2 id="blog-section-title" class="text-2xl sm:text-3xl lg:text-4xl font-black text-white mb-3 sm:mb-4">
+            <!-- populated by JS -->
+          </h2>
+          <p id="blog-section-subtitle" class="text-sm sm:text-base lg:text-lg text-slate-400">
+            <!-- populated by JS -->
+          </p>
+        </div>
+
+        <!-- Blog Filters -->
+        <div id="blog-filters" class="flex flex-wrap items-center justify-center gap-2 sm:gap-2.5 mb-10 sm:mb-12">
+          <!-- populated by JS -->
+        </div>
+
+        <!-- Blog Articles Grid -->
+        <div id="blog-posts-grid" class="grid grid-cols-1 md:grid-cols-3 gap-5 sm:gap-7">
+          <!-- populated by JS -->
+        </div>
+
+      </div>
+    </section>
+
+
+    <!-- ========================================================================
+         6. SECTION E: CONNECT & COLLABORATE (تواصل معي)
+         ======================================================================== -->
+    <section id="contact" class="py-14 sm:py-20 border-t border-slate-800/80 relative">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        
+        <!-- Section Header -->
+        <div class="text-center max-w-3xl mx-auto mb-12 sm:mb-16">
+          <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 text-xs font-bold uppercase tracking-wider mb-3">
+            05 // Get in Touch
+          </div>
+          <h2 id="contact-section-title" class="text-2xl sm:text-3xl lg:text-4xl font-black text-white mb-3 sm:mb-4">
+            <!-- populated by JS -->
+          </h2>
+          <p id="contact-section-subtitle" class="text-sm sm:text-base lg:text-lg text-slate-400">
+            <!-- populated by JS -->
+          </p>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-8 items-start">
+          
+          <!-- Channels & Quick Actions -->
+          <div class="lg:col-span-5 space-y-3.5 sm:space-y-4">
+            <h3 id="contact-channels-title" class="text-lg sm:text-xl font-bold text-white mb-3"></h3>
+            <div id="contact-channels-grid" class="space-y-3">
+              <!-- populated by JS -->
+            </div>
+          </div>
+
+          <!-- Contact Message Form -->
+          <div class="lg:col-span-7">
+            <div class="glass-card p-5 sm:p-8 rounded-2xl border border-slate-800">
+              <form id="contact-form" class="space-y-4">
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label id="form-name-label" class="block text-xs font-semibold text-slate-300 mb-1.5"></label>
+                    <input type="text" id="form-name-input" required class="w-full px-4 py-3 rounded-xl bg-slate-900/90 border border-slate-700/80 focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 text-white placeholder-slate-500 text-sm outline-none transition-all">
+                  </div>
+                  <div>
+                    <label id="form-email-label" class="block text-xs font-semibold text-slate-300 mb-1.5"></label>
+                    <input type="email" id="form-email-input" required class="w-full px-4 py-3 rounded-xl bg-slate-900/90 border border-slate-700/80 focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 text-white placeholder-slate-500 text-sm outline-none transition-all">
+                  </div>
+                </div>
+
+                <div>
+                  <label id="form-subject-label" class="block text-xs font-semibold text-slate-300 mb-1.5"></label>
+                  <input type="text" id="form-subject-input" required class="w-full px-4 py-3 rounded-xl bg-slate-900/90 border border-slate-700/80 focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 text-white placeholder-slate-500 text-sm outline-none transition-all">
+                </div>
+
+                <div>
+                  <label id="form-message-label" class="block text-xs font-semibold text-slate-300 mb-1.5"></label>
+                  <textarea id="form-message-input" rows="4" required class="w-full px-4 py-3 rounded-xl bg-slate-900/90 border border-slate-700/80 focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 text-white placeholder-slate-500 text-sm outline-none transition-all resize-y"></textarea>
+                </div>
+
+                <button type="submit" id="form-submit-btn" class="btn-glow-cyan w-full py-3.5 px-6 rounded-xl font-bold text-white bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 shadow-lg shadow-cyan-500/25 transition-all text-sm flex items-center justify-center gap-2">
+                  <!-- populated by JS -->
+                </button>
+              </form>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ========================================================================
+       FOOTER
+       ======================================================================== -->
+  <footer class="border-t border-slate-800/80 py-8 sm:py-10 bg-slate-950/60 relative z-10">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-4">
+      <div class="flex items-center gap-3">
+        <span class="w-2.5 h-2.5 rounded-full bg-cyan-400 shrink-0"></span>
+        <p id="footer-copyright-text" class="text-xs sm:text-sm text-slate-400 text-center sm:text-start">
+          <!-- populated by JS -->
+        </p>
+      </div>
+      <a href="#" id="back-to-top-btn" class="p-2 sm:p-2.5 rounded-xl bg-slate-800 text-slate-300 hover:text-white hover:bg-slate-700 transition-colors shrink-0" aria-label="Back to Top">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18"/></svg>
+      </a>
+    </div>
+  </footer>
+
+  <!-- ========================================================================
+       MODAL READER FOR BLOG ARTICLES
+       ======================================================================== -->
+  <div id="blog-modal" class="modal-overlay hidden fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 lg:p-8">
+    <div id="blog-modal-content" class="modal-content glass-card w-full max-w-3xl p-5 sm:p-8 lg:p-10 rounded-2xl sm:rounded-3xl border border-slate-700/80 shadow-2xl relative">
+      <!-- Injected by app.js when clicking an article -->
+    </div>
+  </div>
+
+  <!-- ========================================================================
+       FLOATING TOAST CONTAINER
+       ======================================================================== -->
+  <div id="toast-container"></div>
+
+  <!-- Scripts -->
+  <script src="data.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
